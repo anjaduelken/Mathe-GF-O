@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<!--
+  Lernapp Stochastik (Wahrscheinlichkeitsrechnung, Bernoulli und Binomialverteilung)
+  Fach: Mathematik, Jahrgangsstufe 12, Zweijaehrige Berufsfachschule (FHR) Gesundheit und Soziales
+  Stand: 25.11.2026
+  Einzelne Datei ohne Netzwerkzugriff. Fortschritt nur im Browser (localStorage).
+-->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lernapp Stochastik &ndash; Mathematik Gesundheit und Soziales</title>
+<style>
+:root{--ctl:#34495E;--ctl2:#2C3E50;--bg:#F4F6F8;--card:#fff;--ink:#1F2933;--mut:#52606D;--line:#C9D1D9;--ok:#1B6E34;--okbg:#E3F3E8;--bad:#A4271E;--badbg:#FBE9E7;--hint:#FFF4D6;--b1:#0072B2;--b2:#D55E00}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{height:100vh;height:100dvh;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.4}
+header{background:var(--ctl2);color:#fff;padding:.35rem .9rem;display:flex;flex-wrap:wrap;align-items:baseline;gap:.2rem .8rem}
+header h1{margin:0;font-size:1.1rem}
+header small{opacity:.9}
+nav{display:flex;flex-wrap:wrap;gap:.35rem;padding:.4rem .6rem;background:var(--card);border-bottom:1px solid var(--line)}
+button,select,input{font:inherit;color:inherit}
+button{min-height:40px;padding:.3rem .8rem;border:1px solid var(--ctl);border-radius:.5rem;background:#fff;color:var(--ctl);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){background:#E8EDF2}
+button.pri:hover:not(:disabled),button.on:hover:not(:disabled),.opt.sel:hover:not(:disabled){background:var(--ctl2);color:#fff}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #F2A900;outline-offset:2px}
+button.pri,button.on{background:var(--ctl);color:#fff}
+button:disabled{opacity:.45;cursor:not-allowed}
+.opt.right:disabled,.opt.wrong:disabled{opacity:1;color:var(--ink)}
+select{max-width:100%;min-height:40px;border:1px solid var(--ctl);border-radius:.5rem;background:#fff;padding:.2rem .4rem}
+nav button{flex:1 1 auto}
+#app{flex:1;min-height:0;overflow:auto}
+.page{max-width:60rem;margin:0 auto;padding:.8rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:.6rem;padding:.8rem 1rem;margin:0 0 .8rem}
+h2{margin:.1rem 0 .4rem;font-size:1.25rem;color:var(--ctl2)}
+h3{margin:.3rem 0 .3rem;font-size:1.05rem;color:var(--ctl2)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:.7rem}
+.row{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.mut{color:var(--mut)}
+.fit{height:100%;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);grid-template-rows:auto minmax(0,1fr);gap:.6rem;padding:.6rem}
+.fit .bar{grid-column:1/3}
+.fit .pane{min-height:0;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:.6rem;padding:.45rem .8rem;font-size:15px}
+.fit .pane p{margin:.3rem 0}
+.chip{display:inline-block;font-size:.8rem;padding:.05rem .5rem;border-radius:1rem;background:var(--ctl);color:#fff;margin-right:.3rem}
+.chip.l{background:#fff;color:var(--ctl);border:1px solid var(--ctl)}
+.part{margin:.35rem 0;padding:.3rem .6rem;border-left:4px solid var(--line)}
+.part.ok{border-left-color:var(--ok);background:var(--okbg)}
+.part.bad{border-left-color:var(--bad);background:var(--badbg)}
+input[type=text]{min-height:40px;padding:.25rem .6rem;border:1px solid var(--ctl);border-radius:.5rem;background:#fff;width:min(100%,15rem)}
+.opt{display:block;width:100%;text-align:left;margin:.2rem 0;min-height:34px;padding:.2rem .6rem;line-height:1.3;border-color:var(--line)}
+.opt.sel{background:var(--ctl);color:#fff;border-color:var(--ctl)}
+.opt.right{border:2px solid var(--ok);background:var(--okbg);color:var(--ink)}
+.opt.wrong{border:2px solid var(--bad);background:var(--badbg);color:var(--ink)}
+.lab{font-weight:700}
+.lab.ok{color:var(--ok)}.lab.bad{color:var(--bad)}
+.fb{padding:.5rem .8rem;border-radius:.5rem;margin:.5rem 0;font-weight:600}
+.fb.ok{background:var(--okbg);border:1px solid var(--ok)}
+.fb.bad{background:var(--badbg);border:1px solid var(--bad)}
+.corr{color:var(--ok);font-weight:700}
+details{margin:.4rem 0;border:1px solid var(--line);border-radius:.5rem;padding:.3rem .7rem;background:#FAFBFC}
+summary{cursor:pointer;font-weight:700;color:var(--ctl2)}
+details ol{margin:.3rem 0 .3rem 1.2rem;padding:0}
+.sent{font-weight:700}
+.frac{display:inline-block;vertical-align:middle;text-align:center;margin:0 .15em;line-height:1.2}
+.frac>span{display:block;padding:0 .2em}
+.frac>span:first-child{border-bottom:.09em solid currentColor}
+svg{max-width:100%;height:auto;display:block}
+.fig{text-align:center}
+.fig svg{margin:0 auto;max-height:46vh}
+.cap{font-size:.85rem;color:var(--mut)}
+table.t{border-collapse:collapse;margin:.4rem auto}
+table.t td,table.t th{border:1px solid var(--ctl);padding:.25rem .7rem;text-align:center}
+table.t th{background:#E8EDF2}
+.dots{display:flex;flex-wrap:wrap;gap:.3rem}
+.dots button{min-width:44px}
+.dots button.done{border-width:2px}
+.toast{position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);background:var(--ctl2);color:#fff;padding:.6rem 1rem;border-radius:.7rem;display:flex;gap:.7rem;align-items:center;max-width:92vw;z-index:20}
+.medal{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:3.4rem;height:3.4rem;border-radius:50%;border:3px solid #fff;font-weight:700;font-size:.7rem;color:#222;text-align:center;line-height:1}
+.medal b{font-size:1.2rem}
+.m-bronze{background:linear-gradient(135deg,#E3A56B,#A9692F)}
+.m-silber{background:linear-gradient(135deg,#F2F4F6,#9FA8B0)}
+.m-gold{background:linear-gradient(135deg,#FFE27A,#D9A200)}
+.m-einzel{background:linear-gradient(135deg,#BFE3F5,#5BA7CC)}
+.m-lock{background:#E8EDF2;color:#52606D;border-color:#C9D1D9}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(9rem,1fr));gap:.7rem}
+.bd{text-align:center;padding:.5rem;border:1px solid var(--line);border-radius:.6rem;background:#fff}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:30;padding:1rem}
+.modal>div{background:#fff;border-radius:.7rem;padding:1rem 1.2rem;max-width:30rem}
+dl.gl dt{font-weight:700;margin-top:.5rem}
+dl.gl dd{margin:0 0 0 .8rem}
+.kan{display:flex;flex-wrap:wrap;gap:.4rem .8rem;align-items:center;margin:.3rem 0;padding:.3rem 0;border-bottom:1px solid var(--line)}
+.kan span.t{flex:1 1 18rem}
+input[type=range]{width:min(100%,16rem)}
+@media (max-width:900px){
+ html,body{max-width:100%;overflow-x:hidden}
+ body{height:auto;min-height:100vh;display:block}
+ #app{overflow:visible}
+ .fit{display:block;height:auto}
+ .fit .pane{overflow:visible;margin-bottom:.6rem}
+ .fig svg{max-height:none}
+}
+@media print{
+ header,nav,.noprint,.toast{display:none!important}
+ body{display:block;height:auto;background:#fff}
+ #app{overflow:visible}
+ details{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<header><h1>Lernapp Stochastik</h1><small>Mathematik &middot; Zweij&auml;hrige Berufsfachschule (FHR) &middot; Gesundheit und Soziales</small></header>
+<nav id="nav" aria-label="Hauptmen&uuml;"></nav>
+<div id="app"></div>
+<noscript><div class="page"><p>Bitte aktiviere JavaScript, damit die Lernapp funktioniert.</p></div></noscript>
+<div id="toast" class="toast" role="status" style="display:none"></div>
+<script>
+(function(){
+"use strict";
+/* ===== Einstellungen ===== */
+var DEC=','; /* Dezimalzeichen: ',' (Schreibweise im Fach) oder '.' */
+var KEY=[[95,15],[90,14],[85,13],[80,12],[75,11],[70,10],[65,9],[60,8],[55,7],[50,6],[45,5],[40,4],[33,3],[27,2],[20,1],[0,0]]; /* Prozent -> Notenpunkte */
+var NOTE=['ungen\u00fcgend (6)','mangelhaft (5)','mangelhaft (5)','mangelhaft (5)','ausreichend (4)','ausreichend (4)','ausreichend (4)','befriedigend (3)','befriedigend (3)','befriedigend (3)','gut (2)','gut (2)','gut (2)','sehr gut (1)','sehr gut (1)','sehr gut (1)'];
+var STORE_KEY='stochastik_lernapp_v1';
+
+/* ===== Hilfsfunktionen ===== */
+function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1));}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+function shuffle(a){var r=a.slice(),i,j,t;for(i=r.length-1;i>0;i--){j=Math.floor(Math.random()*(i+1));t=r[i];r[i]=r[j];r[j]=t;}return r;}
+function fmt(x,d){var s=(Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toFixed(d);if(s.indexOf('-')===0&&parseFloat(s)!==0){s='('+s+')';}else if(s.indexOf('-')===0){s=s.slice(1);}return s.replace('.',DEC);}
+function f4(x){return fmt(x,4);}
+function pc(x,d){return fmt(x*100,d===undefined?2:d)+'\u00a0%';}
+function fr(a,b){return '<span class="frac"><span>'+a+'</span><span>'+b+'</span></span>';}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function nCr(n,k){var r=1,i;if(k<0||k>n)return 0;for(i=1;i<=k;i++){r=r*(n-k+i)/i;}return Math.round(r);}
+function binom(n,p,k){return nCr(n,k)*Math.pow(p,k)*Math.pow(1-p,n-k);}
+function cum(n,p,a,b){var s=0,i;for(i=a;i<=b;i++){s+=binom(n,p,i);}return s;}
+function tolFor(x){return 0.0006;}
+function pb(a){return '<sub>'+a+'</sub>';}
+function sup(a){return '<sup>'+a+'</sup>';}
+
+/* ===== Grafiken (SVG) ===== */
+function svgFrac(cx,cy,a,b,anchor){
+  var w=Math.max(String(a).length,String(b).length)*7+4;
+  return '<text x="'+cx+'" y="'+(cy-3)+'" text-anchor="middle" font-size="13">'+a+'</text>'+
+    '<line x1="'+(cx-w/2)+'" y1="'+cy+'" x2="'+(cx+w/2)+'" y2="'+cy+'" stroke="#1F2933" stroke-width="1"/>'+
+    '<text x="'+cx+'" y="'+(cy+12)+'" text-anchor="middle" font-size="13">'+b+'</text>';
+}
+/* Baum: node = {l:'Name', c:[{e:'0,25' oder {a:3,b:8}, n:node}]} */
+function leaves(n){if(!n.c||!n.c.length)return 1;var s=0,i;for(i=0;i<n.c.length;i++)s+=leaves(n.c[i].n);return s;}
+function depth(n){if(!n.c||!n.c.length)return 0;var m=0,i;for(i=0;i<n.c.length;i++)m=Math.max(m,depth(n.c[i].n));return m+1;}
+function drawTree(root,title){
+  var D=depth(root),L=leaves(root),rowH=D>=3?42:56,colW=D>=3?150:190,W=40+D*colW+70,H=L*rowH+16,out='',idx=0;
+  function lay(n,d){n.x=30+d*colW;if(!n.c||!n.c.length){n.y=8+idx*rowH+rowH/2;idx++;}else{var s=0,i;for(i=0;i<n.c.length;i++){lay(n.c[i].n,d+1);s+=n.c[i].n.y;}n.y=s/n.c.length;}}
+  lay(root,0);
+  function emit(n){var i,c,mx,my,lab;
+    if(n.c){for(i=0;i<n.c.length;i++){c=n.c[i].n;
+      out+='<line x1="'+n.x+'" y1="'+n.y+'" x2="'+c.x+'" y2="'+c.y+'" stroke="#34495E" stroke-width="1.6"/>';
+      mx=(n.x+c.x)/2;my=(n.y+c.y)/2;
+      lab=n.c[i].e;
+      if(typeof lab==='object'){out+='<rect x="'+(mx-18)+'" y="'+(my-24)+'" width="36" height="34" fill="#fff"/>'+svgFrac(mx,my-6,lab.a,lab.b);}
+      else{out+='<text x="'+mx+'" y="'+(my-6)+'" text-anchor="middle" font-size="13" stroke="#fff" stroke-width="4" paint-order="stroke">'+lab+'</text>';}
+      emit(c);}}
+    out+='<circle cx="'+n.x+'" cy="'+n.y+'" r="4" fill="#34495E"/><text x="'+(n.x+8)+'" y="'+(n.y-7)+'" font-size="14" font-weight="700" stroke="#fff" stroke-width="4" paint-order="stroke">'+n.l+'</text>';
+  }
+  emit(root);
+  return '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+(title||'Baumdiagramm')+'" font-family="Arial,Helvetica,sans-serif" fill="#1F2933">'+out+'</svg>';
+}
+function drawHist(n,p,sel,title,showMu){
+  var W=540,Hh=230,L=52,B=34,pw=W-L-10,ph=Hh-B-18,bw=pw/(n+1),mx=0,vals=[],i,s='',h,x,t;
+  for(i=0;i<=n;i++){vals.push(binom(n,p,i));if(vals[i]>mx)mx=vals[i];}
+  var top=Math.ceil(mx*20)/20;if(top<mx)top+=0.05;if(top<0.1)top=0.1;
+  s+='<line x1="'+L+'" y1="'+(18+ph)+'" x2="'+(W-6)+'" y2="'+(18+ph)+'" stroke="#1F2933"/><line x1="'+L+'" y1="14" x2="'+L+'" y2="'+(18+ph)+'" stroke="#1F2933"/>';
+  for(t=0;t<=2;t++){var yv=top*t/2,yy=18+ph-yv/top*ph;s+='<line x1="'+(L-4)+'" y1="'+yy+'" x2="'+L+'" y2="'+yy+'" stroke="#1F2933"/><text x="'+(L-7)+'" y="'+(yy+4)+'" text-anchor="end" font-size="12">'+fmt(yv,2)+'</text>';}
+  for(i=0;i<=n;i++){
+    h=vals[i]/top*ph;x=L+i*bw;
+    var on=sel(i);
+    s+='<rect x="'+(x+1.5)+'" y="'+(18+ph-h)+'" width="'+Math.max(bw-3,1)+'" height="'+h+'" fill="'+(on?'#D55E00':'#0072B2')+'" stroke="'+(on?'#000':'none')+'" stroke-width="2"/>';
+    if(n<=20||i%5===0)s+='<text x="'+(x+bw/2)+'" y="'+(18+ph+15)+'" text-anchor="middle" font-size="12">'+i+'</text>';
+  }
+  s+='<text x="'+(L+pw/2)+'" y="'+(Hh-3)+'" text-anchor="middle" font-size="12">k (Anzahl der Treffer)</text>';
+  s+='<text x="12" y="'+(18+ph/2)+'" text-anchor="middle" font-size="12" transform="rotate(-90 12 '+(18+ph/2)+')">P(X = k)</text>';
+  if(showMu){var mxp=L+(n*p+0.5)*bw;s+='<line x1="'+mxp+'" y1="14" x2="'+mxp+'" y2="'+(18+ph)+'" stroke="#000" stroke-dasharray="5 4"/><text x="'+(mxp+4)+'" y="26" font-size="12">&mu; = '+fmt(n*p,2)+'</text>';}
+  return '<svg viewBox="0 0 '+W+' '+Hh+'" role="img" aria-label="'+(title||'Histogramm')+'" font-family="Arial,Helvetica,sans-serif" fill="#1F2933">'+s+'</svg>';
+}
+function figHist(n,p,sel,cap){return '<div class="fig">'+drawHist(n,p,sel,'Histogramm der Binomialverteilung mit n = '+n+' und p = '+fmt(p,2))+'<div class="cap">Histogramm mit n = '+n+' und p = '+fmt(p,2)+'. '+cap+'</div></div>';}
+function tab4(rowA,rowB,colA,colB,cells,cap){ /* cells: [[a,b,sumRow1],[c,d,sumRow2],[s1,s2,total]] */
+  var r,c,h='<table class="t" aria-label="Vierfeldertafel"><tr><th></th><th>'+colA+'</th><th>'+colB+'</th><th>Summe</th></tr>';
+  var names=[rowA,rowB,'Summe'];
+  for(r=0;r<3;r++){h+='<tr><th>'+names[r]+'</th>';for(c=0;c<3;c++){h+='<td>'+cells[r][c]+'</td>';}h+='</tr>';}
+  return '<div class="fig">'+h+'</table><div class="cap">'+cap+'</div></div>';
+}
+
+/* ===== Aufgaben-Bausteine ===== */
+function mcBuild(correct,wrongs){ /* correct: text; wrongs: [{t,err}] */
+  var o=[{t:correct,ok:true,err:''}],i,seen={};seen[correct]=true;
+  for(i=0;i<wrongs.length&&o.length<4;i++){if(!seen[wrongs[i].t]){seen[wrongs[i].t]=true;o.push({t:wrongs[i].t,ok:false,err:wrongs[i].err});}}
+  return shuffle(o);
+}
+function pnum(label,op,afb,answer,w,sol,kind){return {label:label,op:op,afb:afb,kind:kind||'p',answer:answer,tol:(kind==='int'?0:(kind==='num'?0.011:tolFor(answer))),w:w,sol:sol};}
+function pmc(label,op,afb,options,w,sol){return {label:label,op:op,afb:afb,kind:'mc',options:options,w:w,sol:sol};}
+function S(steps,sentence){return {steps:steps,sentence:sentence};}
+function verdict(b){return b?'wahr':'falsch';}
+
+/* Baumaufbau: Stichprobe aus n Personen, k mit Merkmal M ("m") */
+function sampleTree(n,k,stages,repl,lm,ln){
+  function build(d,nn,kk){
+    var nd={l:''};
+    if(d===stages)return nd;
+    var pm=repl?{a:k,b:n}:{a:kk,b:nn},pn=repl?{a:n-k,b:n}:{a:nn-kk,b:nn};
+    nd.c=[];
+    if(kk>0||repl)nd.c.push({e:pm,n:build(d+1,repl?nn:nn-1,repl?kk:kk-1)});
+    if(nn-kk>0||repl)nd.c.push({e:pn,n:build(d+1,repl?nn:nn-1,kk)});
+    var i;for(i=0;i<nd.c.length;i++){nd.c[i].n.l=(i===0&&(kk>0||repl))?lm:ln;}
+    return nd;
+  }
+  var root=build(0,n,k);root.l='Start';return root;
+}
+
+/* ===== Aufgabentypen ===== */
+var TYPES=[
+ {id:'A',name:'Zufall und Laplace',comp:['M1']},
+ {id:'B',name:'Baumdiagramm und Pfadregeln',comp:['M2','M3']},
+ {id:'C',name:'Vierfeldertafel und bedingte Wahrscheinlichkeit',comp:['M4','M5']},
+ {id:'D',name:'Testergebnisse und Satz von Bayes',comp:['M6']},
+ {id:'E',name:'Binomialverteilung',comp:['M7']},
+ {id:'F',name:'Erwartungswert, Histogramm und n gesucht',comp:['M8','M7']}
+];
+var KANN=[
+ ['M1','Ich kann Wahrscheinlichkeiten bei Laplace-Experimenten und mit relativen H\u00e4ufigkeiten bestimmen und das Gegenereignis nutzen.'],
+ ['M2','Ich kann zwei- und dreistufige Zufallsexperimente mit einem Baumdiagramm darstellen und die Pfadregeln anwenden (mit und ohne Zur\u00fccklegen).'],
+ ['M3','Ich kann Wahrscheinlichkeiten f\u00fcr \u201egenau ein\u201c und \u201emindestens ein\u201c Treffer in mehrstufigen Zufallsexperimenten berechnen und dazu das Gegenereignis einsetzen.'],
+ ['M4','Ich kann eine Vierfeldertafel ausf\u00fcllen und bedingte Wahrscheinlichkeiten bestimmen und deuten.'],
+ ['M5','Ich kann stochastische Unabh\u00e4ngigkeit pr\u00fcfen und Aussagen \u00fcber Wahrscheinlichkeiten beurteilen.'],
+ ['M6','Ich kann mit dem Satz von Bayes Testergebnisse deuten und die Aussagekraft eines positiven Tests beurteilen.'],
+ ['M7','Ich kann Bernoulli-Ketten erkennen und die Binomialverteilung f\u00fcr \u201egenau\u201c, \u201eh\u00f6chstens\u201c und \u201emindestens\u201c berechnen.'],
+ ['M8','Ich kann den Erwartungswert bestimmen, ein Histogramm deuten und die Anzahl der Versuche n berechnen.']
+];
+var OPS={1:'Gib an, Berechne, Wende an',2:'Bestimme, Ermittle',3:'Beurteile, Entwickle, \u00dcberpr\u00fcfe'};
+var MK={ /* Typ -> Kompetenz je Stufe */
+ A:['M1','M1','M1'],B:['M2','M3','M2'],C:['M4','M4','M5'],D:['M6','M6','M6'],E:['M7','M7','M7'],F:['M8','M8','M8']
+};
+
+var GENS={};
+
+/* ---------- A: Zufall und Laplace ---------- */
+GENS.A=function(l){
+  var r,b,n,t,k,m,T,x;
+  if(l===1){
+    r=rnd(3,9);b=rnd(3,9);n=r+b;x=r/n;
+    return {text:'Bei einer Tombola im Seniorenheim liegen <b>'+r+' Gewinnlose</b> und <b>'+b+' Nieten</b> im Lostopf. Eine Bewohnerin zieht ein Los.',
+      fig:'<div class="fig"><svg viewBox="0 0 300 70" role="img" aria-label="Lostopf mit '+r+' Gewinnlosen und '+b+' Nieten"><rect x="10" y="10" width="'+(280*r/n)+'" height="30" fill="#0072B2"/><rect x="'+(10+280*r/n)+'" y="10" width="'+(280*b/n)+'" height="30" fill="#fff" stroke="#34495E" stroke-width="2"/><text x="'+(10+140*r/n)+'" y="30" text-anchor="middle" font-size="14" fill="#fff">Gewinn: '+r+'</text><text x="'+(10+280*r/n+140*b/n)+'" y="30" text-anchor="middle" font-size="14" fill="#1F2933">Niete: '+b+'</text><text x="150" y="62" text-anchor="middle" font-size="13" fill="#1F2933">Lostopf mit insgesamt '+n+' Losen</text></svg></div>',
+      parts:[pnum('Berechne die Wahrscheinlichkeit, dass die Bewohnerin ein Gewinnlos zieht.','Berechne',1,x,2,
+        S(['Anzahl der g\u00fcnstigen Ergebnisse: '+r+' (Gewinnlose).','Anzahl aller Ergebnisse: '+r+' + '+b+' = '+n+'.','P(Gewinn) = '+fr(r,n)+' = '+f4(x)],'Die Wahrscheinlichkeit f\u00fcr ein Gewinnlos betr\u00e4gt '+f4(x)+' ('+pc(x)+').'))]};
+  }
+  if(l===2){
+    n=pick([80,100,120,150,200]);k=Math.round(n*pick([0.15,0.2,0.25,0.3]));x=k/n;
+    return {text:'Bei einer Reihenuntersuchung in einer Kita werden <b>'+n+' Kinder</b> untersucht. Bei <b>'+k+' Kindern</b> findet die Zahn\u00e4rztin Karies. Die relative H\u00e4ufigkeit wird als Sch\u00e4tzwert f\u00fcr die Wahrscheinlichkeit verwendet.',
+      fig:'<div class="fig"><svg viewBox="0 0 300 70" role="img" aria-label="Balken: '+k+' von '+n+' Kindern mit Karies"><rect x="10" y="10" width="'+(280*x)+'" height="30" fill="#D55E00"/><rect x="'+(10+280*x)+'" y="10" width="'+(280*(1-x))+'" height="30" fill="#fff" stroke="#34495E" stroke-width="2"/><text x="'+(10+140*x)+'" y="30" text-anchor="middle" font-size="13" fill="#fff">Karies</text><text x="'+(10+280*x+140*(1-x))+'" y="30" text-anchor="middle" font-size="13" fill="#1F2933">kein Karies</text><text x="150" y="62" text-anchor="middle" font-size="13" fill="#1F2933">'+n+' untersuchte Kinder</text></svg></div>',
+      parts:[pnum('Bestimme die relative H\u00e4ufigkeit f\u00fcr Karies.','Bestimme',2,x,2,S(['Relative H\u00e4ufigkeit = Anzahl der Treffer geteilt durch Anzahl der Versuche.','h = '+fr(k,n)+' = '+f4(x)],'Die relative H\u00e4ufigkeit f\u00fcr Karies betr\u00e4gt '+f4(x)+' ('+pc(x)+').')),
+             pnum('Bestimme die Wahrscheinlichkeit, dass ein zuf\u00e4llig ausgew\u00e4hltes Kind kein Karies hat.','Bestimme',2,1-x,2,S(['Gegenereignis: P(kein Karies) = 1 \u2212 P(Karies).','P(kein Karies) = 1 \u2212 '+f4(x)+' = '+f4(1-x)],'Ein zuf\u00e4llig ausgew\u00e4hltes Kind hat mit '+pc(1-x)+' kein Karies.'))]};
+  }
+  m=pick([8,16,20,40]);T=pick([4,10]);x=100/m;
+  var truth=x<T,rd=m,rs=x/10,rt=1/m;
+  function v2(val){return val<T;}
+  var correct='Die Aussage ist '+verdict(truth)+', denn 1 von '+m+' entspricht '+fmt(x,2)+'\u00a0%.';
+  var wr=[{t:'Die Aussage ist '+verdict(v2(rd))+', denn 1 von '+m+' entspricht '+fmt(rd,2)+'\u00a0%.',err:'Du hast 1 von '+m+' als '+m+'\u00a0% gelesen. Richtig ist: 1 geteilt durch '+m+' mal 100.'},
+          {t:'Die Aussage ist '+verdict(v2(rs))+', denn 1 von '+m+' entspricht '+fmt(rs,2)+'\u00a0%.',err:'Das Komma ist um eine Stelle falsch verschoben. 1 geteilt durch '+m+' ergibt '+f4(1/m)+', das sind '+fmt(x,2)+'\u00a0%.'},
+          {t:'Die Aussage ist '+verdict(v2(rt))+', denn 1 von '+m+' entspricht '+fmt(rt,2)+'\u00a0%.',err:'Du hast den Wert '+f4(1/m)+' nicht in Prozent umgerechnet (mal 100).'}];
+  var opts=mcBuild(correct,wr);
+  return {text:'Im Beipackzettel eines Impfstoffs steht: \u201eNebenwirkungen treten bei <b>1 von '+m+'</b> Geimpften auf.\u201c',
+    fig:'<div class="fig"><svg viewBox="0 0 320 60" role="img" aria-label="'+m+' K\u00e4stchen, eines markiert"><g>'+(function(){var s='',i,w=300/m;for(i=0;i<m;i++){s+='<rect x="'+(10+i*w)+'" y="10" width="'+(w-2)+'" height="26" fill="'+(i===0?'#D55E00':'#fff')+'" stroke="#34495E"/>';}return s;})()+'</g><text x="160" y="54" text-anchor="middle" font-size="12" fill="#1F2933">orange: 1 von '+m+' Geimpften mit Nebenwirkung</text></svg></div>',
+    parts:[pnum('Bestimme die Wahrscheinlichkeit f\u00fcr Nebenwirkungen als Dezimalzahl.','Bestimme',2,1/m,1,S(['P = 1 von '+m+' = '+fr(1,m)+' = '+f4(1/m)],'Die Wahrscheinlichkeit f\u00fcr Nebenwirkungen betr\u00e4gt '+f4(1/m)+'.')),
+           pmc('\u00dcberpr\u00fcfe die Aussage: \u201eDie Wahrscheinlichkeit f\u00fcr Nebenwirkungen liegt unter '+T+'\u00a0%.\u201c','\u00dcberpr\u00fcfe',3,opts,3,
+             S(['Umrechnen in Prozent: '+f4(1/m)+' \u00b7 100\u00a0% = '+fmt(x,2)+'\u00a0%.','Vergleich mit der Grenze: '+fmt(x,2)+'\u00a0% '+(truth?'<':'\u2265')+' '+T+'\u00a0%.'],'Die Aussage ist '+verdict(truth)+': Die Wahrscheinlichkeit betr\u00e4gt '+fmt(x,2)+'\u00a0%.'))]};
+};
+
+/* ---------- B: Baumdiagramm ---------- */
+GENS.B=function(l){
+  var n,k,g,a,r,b,x,v;
+  if(l===1){
+    n=rnd(8,14);k=rnd(3,6);x=k/n*((k-1)/(n-1));
+    return {text:'Ein Pflegeteam hat <b>'+n+' Mitarbeitende</b>. <b>'+k+'</b> von ihnen haben die Hygieneunterweisung noch nicht besucht (U). Die Leitung kontrolliert zuf\u00e4llig <b>zwei</b> Personen nacheinander, ohne Zur\u00fccklegen.',
+      fig:'<div class="fig">'+drawTree(sampleTree(n,k,2,false,'U','O'),'Baumdiagramm: zwei Z\u00fcge ohne Zur\u00fccklegen')+'<div class="cap">U: ohne Unterweisung, O: mit Unterweisung. Die \u00c4ste zeigen die Wahrscheinlichkeiten.</div></div>',
+      parts:[pnum('Berechne die Wahrscheinlichkeit, dass <b>beide</b> kontrollierten Personen ohne Unterweisung sind.','Berechne',1,x,2,
+        S(['Erster Zug: P(U) = '+fr(k,n)+'.','Zweiter Zug ohne Zur\u00fccklegen: P(U) = '+fr(k-1,n-1)+'.','1. Pfadregel (multiplizieren): P = '+fr(k,n)+' \u00b7 '+fr(k-1,n-1)+' = '+fr(k*(k-1),n*(n-1))+' = '+f4(x)],'Mit einer Wahrscheinlichkeit von '+pc(x)+' haben beide Personen keine Unterweisung.'))]};
+  }
+  if(l===2&&Math.random()<0.5){
+    n=rnd(8,12);k=rnd(2,5);g=n-k;a=g/n*((g-1)/(n-1))*((g-2)/(n-2));
+    return {text:'In einem Team von <b>'+n+' Personen</b> haben <b>'+k+'</b> keinen Impfnachweis (K). Drei Personen werden nacheinander zuf\u00e4llig und ohne Zur\u00fccklegen \u00fcberpr\u00fcft.',
+      fig:'<div class="fig">'+drawTree(sampleTree(n,k,3,false,'K','N'),'Baumdiagramm: drei Z\u00fcge ohne Zur\u00fccklegen')+'<div class="cap">K: ohne Nachweis, N: mit Nachweis.</div></div>',
+      parts:[pnum('Bestimme die Wahrscheinlichkeit, dass alle drei Personen einen Nachweis haben.','Bestimme',2,a,2,
+          S(['Pfad N-N-N: '+fr(g,n)+' \u00b7 '+fr(g-1,n-1)+' \u00b7 '+fr(g-2,n-2),'= '+fr(g*(g-1)*(g-2),n*(n-1)*(n-2))+' = '+f4(a)],'Mit '+pc(a)+' haben alle drei Personen einen Nachweis.')),
+        pnum('Bestimme die Wahrscheinlichkeit, dass <b>mindestens eine</b> Person keinen Nachweis hat.','Bestimme',2,1-a,2,
+          S(['Gegenereignis von \u201emindestens eine ohne Nachweis\u201c ist \u201ealle drei mit Nachweis\u201c.','P = 1 \u2212 '+f4(a)+' = '+f4(1-a)],'Mit '+pc(1-a)+' ist mindestens eine Person ohne Nachweis dabei.'))]};
+  }
+  if(l===2){
+    r=rnd(2,6);b=rnd(2,6);n=r+b;x=r/n*b/n;
+    return {text:'In einer Urne liegen <b>'+r+' rote</b> (R) und <b>'+b+' blaue</b> (B) Kugeln. Es wird <b>zweimal mit Zur\u00fccklegen</b> gezogen.',
+      fig:'<div class="fig">'+drawTree(sampleTree(n,r,2,true,'R','B'),'Baumdiagramm: zwei Z\u00fcge mit Zur\u00fccklegen')+'<div class="cap">R: rote Kugel, B: blaue Kugel.</div></div>',
+      parts:[pnum('Bestimme die Wahrscheinlichkeit f\u00fcr den Pfad \u201eerst rot, dann blau\u201c.','Bestimme',2,x,2,S(['1. Pfadregel: P(R, B) = '+fr(r,n)+' \u00b7 '+fr(b,n)+' = '+fr(r*b,n*n)+' = '+f4(x)],'Die Wahrscheinlichkeit f\u00fcr \u201eerst rot, dann blau\u201c betr\u00e4gt '+f4(x)+'.')),
+             pnum('Bestimme die Wahrscheinlichkeit f\u00fcr <b>genau eine</b> rote Kugel.','Bestimme',2,2*x,2,S(['Zwei Pfade geh\u00f6ren dazu: R-B und B-R.','Beide Pfade haben dieselbe Wahrscheinlichkeit: '+f4(x),'2. Pfadregel (addieren): P = 2 \u00b7 '+f4(x)+' = '+f4(2*x)],'Die Wahrscheinlichkeit f\u00fcr genau eine rote Kugel betr\u00e4gt '+f4(2*x)+' ('+pc(2*x)+').'))]};
+  }
+  n=rnd(8,14);k=rnd(3,6);var w=k/n*k/n,o=k/n*((k-1)/(n-1));
+  var corr='Ohne Zur\u00fccklegen ist die Wahrscheinlichkeit kleiner, denn nach dem ersten Zug sind weniger Personen ohne Unterweisung \u00fcbrig.';
+  var opts=mcBuild(corr,[
+    {t:'Ohne Zur\u00fccklegen ist die Wahrscheinlichkeit gr\u00f6\u00dfer, denn im zweiten Zug sind insgesamt weniger Personen zur Auswahl.',err:'Der Nenner wird kleiner, aber auch der Z\u00e4hler: Es ist ja eine Person ohne Unterweisung weniger \u00fcbrig.'},
+    {t:'Beide Wahrscheinlichkeiten sind gleich, denn jede Person wird mit derselben Wahrscheinlichkeit gezogen.',err:'Ohne Zur\u00fccklegen h\u00e4ngt der zweite Zug vom ersten ab. Die Wahrscheinlichkeiten sind nicht gleich.'},
+    {t:'Mit Zur\u00fccklegen ist die Wahrscheinlichkeit kleiner, denn dieselbe Person kann zweimal gezogen werden.',err:'Gerade weil dieselbe Person erneut gezogen werden kann, bleibt der Anteil ohne Unterweisung gleich hoch. Das ergibt die gr\u00f6\u00dfere Wahrscheinlichkeit.'}]);
+  return {text:'Ein Team hat <b>'+n+' Mitarbeitende</b>, <b>'+k+'</b> haben die Hygieneunterweisung noch nicht besucht. Zwei Personen werden nacheinander zuf\u00e4llig kontrolliert. Es wird verglichen, ob mit oder ohne Zur\u00fccklegen gezogen wird.',
+    fig:'<div class="fig">'+drawTree(sampleTree(n,k,2,false,'U','O'),'Baumdiagramm ohne Zur\u00fccklegen')+'<div class="cap">Baum f\u00fcr das Ziehen ohne Zur\u00fccklegen (U: ohne Unterweisung, O: mit Unterweisung).</div></div>',
+    parts:[pnum('Bestimme die Wahrscheinlichkeit, dass beide Personen ohne Unterweisung sind, beim Ziehen <b>mit</b> Zur\u00fccklegen.','Bestimme',2,w,1,S(['P = '+fr(k,n)+' \u00b7 '+fr(k,n)+' = '+fr(k*k,n*n)+' = '+f4(w)],'Mit Zur\u00fccklegen betr\u00e4gt die Wahrscheinlichkeit '+f4(w)+'.')),
+           pnum('Bestimme dieselbe Wahrscheinlichkeit beim Ziehen <b>ohne</b> Zur\u00fccklegen.','Bestimme',2,o,1,S(['P = '+fr(k,n)+' \u00b7 '+fr(k-1,n-1)+' = '+fr(k*(k-1),n*(n-1))+' = '+f4(o)],'Ohne Zur\u00fccklegen betr\u00e4gt die Wahrscheinlichkeit '+f4(o)+'.')),
+           pmc('Beurteile, wie sich die beiden Wahrscheinlichkeiten unterscheiden.','Beurteile',3,opts,2,S(['Vergleich: '+f4(o)+' < '+f4(w)+'.','Nach einem Zug ohne Zur\u00fccklegen bleiben '+(k-1)+' von '+(n-1)+' Personen ohne Unterweisung \u00fcbrig, das ist ein kleinerer Anteil als '+k+' von '+n+'.'],'Ohne Zur\u00fccklegen ist die Wahrscheinlichkeit kleiner, weil sich der Anteil nach dem ersten Zug verkleinert.'))]};
+};
+
+/* ---------- C: Vierfeldertafel ---------- */
+function dataC(){
+  var n=pick([200,250,400,500]),a=n*pick([0.4,0.5,0.6]),pg=pick([0.1,0.15,0.2]),pn=pick([0.3,0.35,0.4]);
+  var x=Math.round(a*pg),y=Math.round((n-a)*pn);
+  return {n:n,a:a,x:x,y:y};
+}
+function tabC(d,known){
+  var q='?';
+  return tab4('geimpft','nicht geimpft','erkrankt','nicht erkrankt',[[d.x,known?d.a-d.x:q,d.a],[d.y,known?d.n-d.a-d.y:q,d.n-d.a],[known?d.x+d.y:q,known?d.n-d.x-d.y:q,d.n]],'Vierfeldertafel mit absoluten H\u00e4ufigkeiten. \u201e?\u201c: Wert nicht gegeben.');
+}
+GENS.C=function(l){
+  var d=dataC(),n=d.n,a=d.a,x=d.x,y=d.y,v,ans,txt,sol;
+  var head='In einer Studie werden <b>'+n+' Personen</b> beobachtet. <b>'+a+'</b> sind gegen Grippe geimpft (G). Von den Geimpften erkranken <b>'+x+'</b>, von den nicht Geimpften <b>'+y+'</b> (E: erkrankt).';
+  if(l===1){
+    v=rnd(0,1);
+    if(v===0){ans=x/a;txt='Berechne die Wahrscheinlichkeit, dass eine <b>geimpfte</b> Person erkrankt.';sol=S(['Bedingung: geimpft. Alle Geimpften: '+a+'.','Davon erkrankt: '+x+'.','P'+pb('G')+'(E) = '+fr(x,a)+' = '+f4(ans)],'Eine geimpfte Person erkrankt mit '+pc(ans)+'.');}
+    else {ans=y/(n-a);txt='Berechne die Wahrscheinlichkeit, dass eine <b>nicht geimpfte</b> Person erkrankt.';sol=S(['Bedingung: nicht geimpft. Alle nicht Geimpften: '+n+' \u2212 '+a+' = '+(n-a)+'.','Davon erkrankt: '+y+'.','P'+pb('nicht G')+'(E) = '+fr(y,n-a)+' = '+f4(ans)],'Eine nicht geimpfte Person erkrankt mit '+pc(ans)+'.');}
+    return {text:head,fig:tabC(d,false),parts:[pnum(txt,'Berechne',1,ans,2,sol)]};
+  }
+  if(l===2){
+    return {text:head,fig:tabC(d,false),parts:[
+      pnum('Bestimme die Anzahl aller erkrankten Personen.','Bestimme',2,x+y,2,S(['Erkrankte Geimpfte: '+x+', erkrankte nicht Geimpfte: '+y+'.','Summe: '+x+' + '+y+' = '+(x+y)],'Insgesamt sind '+(x+y)+' Personen erkrankt.'),'int'),
+      pnum('Bestimme die Wahrscheinlichkeit, dass eine <b>erkrankte</b> Person geimpft ist.','Bestimme',2,x/(x+y),2,S(['Bedingung: erkrankt. Alle Erkrankten: '+(x+y)+'.','Davon geimpft: '+x+'.','P'+pb('E')+'(G) = '+fr(x,x+y)+' = '+f4(x/(x+y))],'Unter den Erkrankten sind '+pc(x/(x+y))+' geimpft.'))]};
+  }
+  if(Math.random()<0.5){
+    var pgv=x/a,pnv=y/(n-a),r=pnv/pgv,truth=r>2;
+    var correct='Die Aussage ist '+verdict(truth)+', denn das Verh\u00e4ltnis der Wahrscheinlichkeiten betr\u00e4gt '+fmt(r,2)+' zu 1.';
+    var rc=y/x,dif=(pnv-pgv)*100;
+    var opts=mcBuild(correct,[
+      {t:'Die Aussage ist '+verdict(rc>2)+', denn das Verh\u00e4ltnis der Anzahlen Erkrankter betr\u00e4gt '+fmt(rc,2)+' zu 1.',err:'Du hast die absoluten Anzahlen verglichen. Die Gruppen sind verschieden gro\u00df, deshalb m\u00fcssen die Anteile verglichen werden.'},
+      {t:'Die Aussage ist wahr, denn die Differenz der Wahrscheinlichkeiten betr\u00e4gt '+fmt(dif,2)+' Prozentpunkte.',err:'Eine Differenz sagt nichts \u00fcber \u201edoppelt so hoch\u201c. Daf\u00fcr brauchst du das Verh\u00e4ltnis (Quotient).'},
+      {t:'Die Aussage ist '+verdict(!truth)+', denn das Verh\u00e4ltnis der Wahrscheinlichkeiten betr\u00e4gt '+fmt(r,2)+' zu 1.',err:'Der Quotient ist richtig, aber du hast ihn falsch gedeutet. Er wird mit der Zahl 2 verglichen.'}]);
+    return {text:head+' Eine Mitarbeiterin sagt: \u201eDas Erkrankungsrisiko ist bei nicht Geimpften mehr als doppelt so hoch wie bei Geimpften.\u201c',fig:tabC(d,false),parts:[
+      pnum('Bestimme die Wahrscheinlichkeit P'+pb('G')+'(E) f\u00fcr Geimpfte.','Bestimme',2,pgv,1,S(['P'+pb('G')+'(E) = '+fr(x,a)+' = '+f4(pgv)],'Bei Geimpften liegt das Risiko bei '+pc(pgv)+'.')),
+      pnum('Bestimme die Wahrscheinlichkeit P'+pb('nicht G')+'(E) f\u00fcr nicht Geimpfte.','Bestimme',2,pnv,1,S(['P'+pb('nicht G')+'(E) = '+fr(y,n-a)+' = '+f4(pnv)],'Bei nicht Geimpften liegt das Risiko bei '+pc(pnv)+'.')),
+      pmc('Beurteile die Aussage der Mitarbeiterin.','Beurteile',3,opts,2,S(['Quotient: '+f4(pnv)+' : '+f4(pgv)+' = '+fmt(r,2)+'.','Vergleich mit 2: '+fmt(r,2)+(truth?' > 2.':' \u2264 2.')],'Die Aussage ist '+verdict(truth)+': Das Risiko ist bei nicht Geimpften das '+fmt(r,2)+'-Fache.'))]};
+  }
+  /* Unabhaengigkeit */
+  var ind=Math.random()<0.5,N=pick([200,400]),A=N/2,e=pick([0.1,0.2,0.3]),X,Y;
+  X=Math.round(A*e);Y=ind?Math.round((N-A)*e):Math.round((N-A)*(e+pick([0.1,-0.05])));
+  var dd={n:N,a:A,x:X,y:Y},pE=(X+Y)/N,pGE=X/A,same=Math.abs(pE-pGE)<1e-9;
+  var corr2='Die Merkmale sind '+(same?'unabh\u00e4ngig':'nicht unabh\u00e4ngig')+', denn P'+pb('G')+'(E) = '+f4(pGE)+' ist '+(same?'gleich':'ungleich')+' P(E) = '+f4(pE)+'.';
+  var opts2=mcBuild(corr2,[
+    {t:'Die Merkmale sind '+(same?'nicht unabh\u00e4ngig':'unabh\u00e4ngig')+', denn P'+pb('G')+'(E) = '+f4(pGE)+' ist '+(same?'gleich':'ungleich')+' P(E) = '+f4(pE)+'.',err:'Du hast das Kriterium falsch herum angewendet. Unabh\u00e4ngig bedeutet P'+pb('G')+'(E) = P(E).'},
+    {t:'Die Merkmale sind unabh\u00e4ngig, denn in beiden Gruppen erkranken '+(X>0&&Y>0?'Personen':'Menschen')+' (X = '+X+', Y = '+Y+').',err:'Dass in beiden Gruppen Personen erkranken, sagt nichts \u00fcber Unabh\u00e4ngigkeit. Du musst Anteile vergleichen.'},
+    {t:'Die Merkmale sind '+(X===Y?'unabh\u00e4ngig':'nicht unabh\u00e4ngig')+', denn '+X+' '+(X===Y?'ist gleich':'ist ungleich')+' '+Y+'.',err:'Die absoluten Anzahlen reichen nicht. Berechne P'+pb('G')+'(E) und P(E).'}]);
+  return {text:'In einer Studie werden <b>'+N+' Personen</b> beobachtet. <b>'+A+'</b> sind geimpft (G). Von den Geimpften erkranken <b>'+X+'</b>, von den nicht Geimpften <b>'+Y+'</b> (E: erkrankt).',fig:tabC(dd,false),parts:[
+    pnum('Bestimme die Wahrscheinlichkeit P(E), dass eine zuf\u00e4llig ausgew\u00e4hlte Person erkrankt.','Bestimme',2,pE,1,S(['Alle Erkrankten: '+X+' + '+Y+' = '+(X+Y)+'.','P(E) = '+fr(X+Y,N)+' = '+f4(pE)],'Insgesamt erkranken '+pc(pE)+' der Personen.')),
+    pnum('Bestimme die Wahrscheinlichkeit P'+pb('G')+'(E) unter den Geimpften.','Bestimme',2,pGE,1,S(['P'+pb('G')+'(E) = '+fr(X,A)+' = '+f4(pGE)],'Unter den Geimpften erkranken '+pc(pGE)+'.')),
+    pmc('\u00dcberpr\u00fcfe, ob Impfung und Erkrankung stochastisch unabh\u00e4ngig sind.','\u00dcberpr\u00fcfe',3,opts2,2,S(['Kriterium: unabh\u00e4ngig, wenn P'+pb('G')+'(E) = P(E).','Vergleich: '+f4(pGE)+(same?' = ':' \u2260 ')+f4(pE)+'.'],'Die Merkmale sind '+(same?'stochastisch unabh\u00e4ngig':'nicht stochastisch unabh\u00e4ngig')+'.'))]};
+};
+
+/* ---------- D: Tests und Bayes ---------- */
+function dataD(l){
+  var pr=pick([0.01,0.02,0.05,0.1]),se=pick([0.9,0.95,0.98]),sp=pick([0.95,0.97,0.99]);
+  return {pr:pr,se:se,sp:sp};
+}
+function treeD(d){
+  return {l:'Start',c:[
+    {e:fmt(d.pr,2),n:{l:'I',c:[{e:fmt(d.se,2),n:{l:'+'}},{e:fmt(1-d.se,2),n:{l:'\u2212'}}]}},
+    {e:fmt(1-d.pr,2),n:{l:'nI',c:[{e:fmt(1-d.sp,2),n:{l:'+'}},{e:fmt(d.sp,2),n:{l:'\u2212'}}]}}]};
+}
+GENS.D=function(l){
+  var d=dataD(),pr=d.pr,se=d.se,sp=d.sp,pPos=pr*se+(1-pr)*(1-sp),bay=pr*se/pPos;
+  var head='In einer Pflegeeinrichtung sind <b>'+pc(pr,0)+'</b> der Personen infiziert (I). Ein Schnelltest f\u00e4llt bei <b>'+pc(se,0)+'</b> der Infizierten positiv (+) aus und bei <b>'+pc(sp,0)+'</b> der Nichtinfizierten (nI) negativ (\u2212).';
+  var fig='<div class="fig">'+drawTree(treeD(d),'Baumdiagramm zum Schnelltest')+'<div class="cap">I: infiziert, nI: nicht infiziert, +: positiv, \u2212: negativ.</div></div>';
+  if(l===1){
+    return {text:head+' Eine Person wird zuf\u00e4llig ausgew\u00e4hlt und getestet.',fig:fig,parts:[pnum('Berechne die Wahrscheinlichkeit, dass die Person infiziert ist <b>und</b> positiv getestet wird.','Berechne',1,pr*se,2,
+      S(['Pfad I und +: P(I) = '+fmt(pr,2)+', P'+pb('I')+'(+) = '+fmt(se,2)+'.','1. Pfadregel: P(I \u2229 +) = '+fmt(pr,2)+' \u00b7 '+fmt(se,2)+' = '+f4(pr*se)],'Mit einer Wahrscheinlichkeit von '+pc(pr*se)+' ist die Person infiziert und positiv.'))]};
+  }
+  var N=10000,I=Math.round(N*pr),tp=Math.round(I*se),fp=Math.round((N-I)*(1-sp));
+  if(l===2){
+    return {text:head+' Eine Person wird zuf\u00e4llig ausgew\u00e4hlt und getestet.',fig:fig,parts:[
+      pnum('Bestimme die Wahrscheinlichkeit, dass der Test <b>positiv</b> ausf\u00e4llt.','Bestimme',2,pPos,2,
+        S(['Pfad I und +: '+fmt(pr,2)+' \u00b7 '+fmt(se,2)+' = '+f4(pr*se),'Pfad nI und +: '+fmt(1-pr,2)+' \u00b7 '+fmt(1-sp,2)+' = '+f4((1-pr)*(1-sp)),'2. Pfadregel (addieren): P(+) = '+f4(pr*se)+' + '+f4((1-pr)*(1-sp))+' = '+f4(pPos)],'Der Test f\u00e4llt mit '+pc(pPos)+' positiv aus.')),
+      pnum('Bestimme die Wahrscheinlichkeit, dass eine <b>positiv</b> getestete Person tats\u00e4chlich infiziert ist.','Bestimme',2,bay,2,
+        S(['Satz von Bayes: P'+pb('+')+'(I) = '+fr('P(I \u2229 +)','P(+)'),'P'+pb('+')+'(I) = '+fr(f4(pr*se),f4(pPos))+' = '+f4(bay),'Kontrolle mit nat\u00fcrlichen H\u00e4ufigkeiten: Von 10\u00a0000 Personen sind '+I+' infiziert, davon '+tp+' positiv; von den '+(N-I)+' Nichtinfizierten sind '+fp+' positiv. '+fr(tp,tp+fp)+' = '+f4(tp/(tp+fp))],'Von den positiv Getesteten sind nur '+pc(bay)+' tats\u00e4chlich infiziert.'))]};
+  }
+  var T=0.5,truth=bay>=T;
+  var cor='Die Aussage ist '+verdict(truth)+', denn nach dem Satz von Bayes sind '+pc(bay,1)+' der positiv Getesteten infiziert.';
+  var opts=mcBuild(cor,[
+    {t:'Die Aussage ist wahr, denn der Test erkennt '+pc(se,0)+' der Infizierten.',err:'Du hast P'+pb('I')+'(+) mit P'+pb('+')+'(I) verwechselt. Die Sensitivit\u00e4t sagt nichts \u00fcber die Infektion nach einem positiven Test.'},
+    {t:'Die Aussage ist '+verdict(pr>=T)+', denn '+pc(pr,0)+' der Personen sind infiziert.',err:'Du hast nur die H\u00e4ufigkeit der Infektion betrachtet, nicht die positiv Getesteten.'},
+    {t:'Die Aussage ist '+verdict(pPos>=T)+', denn '+pc(pPos,1)+' der Personen testen positiv.',err:'Du hast P(+) betrachtet. Gefragt ist aber der Anteil der Infizierten unter den positiv Getesteten.'}]);
+  return {text:head+' Ein Kollege behauptet: \u201eWer positiv getestet wird, ist mit mindestens 50\u00a0% Wahrscheinlichkeit infiziert.\u201c',fig:fig,parts:[
+    pnum('Bestimme die Wahrscheinlichkeit, dass eine positiv getestete Person infiziert ist.','Bestimme',2,bay,2,
+      S(['P(+) = '+fmt(pr,2)+' \u00b7 '+fmt(se,2)+' + '+fmt(1-pr,2)+' \u00b7 '+fmt(1-sp,2)+' = '+f4(pPos),'P'+pb('+')+'(I) = '+fr(f4(pr*se),f4(pPos))+' = '+f4(bay)],'Von den positiv Getesteten sind '+pc(bay)+' infiziert.')),
+    pmc('Beurteile die Aussage des Kollegen.','Beurteile',3,opts,2,S(['Vergleich: '+pc(bay,1)+(truth?' \u2265 ':' < ')+'50\u00a0%.'],'Die Aussage ist '+verdict(truth)+': '+pc(bay,1)+' der positiv Getesteten sind infiziert.'))]};
+};
+
+/* ---------- E: Binomialverteilung ---------- */
+function termSteps(n,p,a,b){var s=[],i;for(i=a;i<=b;i++){s.push('P(X = '+i+') = '+nCr(n,i)+' \u00b7 '+fmt(p,2)+sup(i)+' \u00b7 '+fmt(1-p,2)+sup(n-i)+' = '+f4(binom(n,p,i)));}return s;}
+GENS.E=function(l){
+  var n,p,k,a,b,x,v;
+  if(l===1){
+    n=rnd(6,12);k=rnd(2,n-2);p=pick([0.2,0.3,0.4,0.6,0.7,0.8]);x=binom(n,p,k);
+    return {text:'Ein Medikament wirkt bei <b>'+pc(p,0)+'</b> der behandelten Personen. Es werden <b>'+n+' Personen</b> unabh\u00e4ngig voneinander behandelt. X ist die Anzahl der Personen, bei denen das Medikament wirkt.',
+      fig:figHist(n,p,function(i){return i===k;},'Markiert: k = '+k+'.'),
+      parts:[pnum('Berechne die Wahrscheinlichkeit, dass das Medikament bei <b>genau '+k+'</b> Personen wirkt.','Berechne',1,x,2,
+        S(['Bernoulli-Kette mit n = '+n+', p = '+fmt(p,2)+', k = '+k+'.','P(X = '+k+') = '+nCr(n,k)+' \u00b7 '+fmt(p,2)+sup(k)+' \u00b7 '+fmt(1-p,2)+sup(n-k),'P(X = '+k+') = '+f4(x)],'Bei genau '+k+' von '+n+' Personen wirkt das Medikament mit einer Wahrscheinlichkeit von '+pc(x)+'.'))]};
+  }
+  if(l===2){
+    n=rnd(6,10);p=pick([0.1,0.2,0.3,0.4]);a=rnd(1,3);b=rnd(2,4);
+    var ha=cum(n,p,0,a),hb=1-cum(n,p,0,b-1);
+    return {text:'Bei einer Impfung treten bei <b>'+pc(p,0)+'</b> der Geimpften Nebenwirkungen auf. <b>'+n+' Personen</b> werden unabh\u00e4ngig voneinander geimpft. X ist die Anzahl der Personen mit Nebenwirkungen.',
+      fig:figHist(n,p,function(i){return i<=a;},'Markiert: k \u2264 '+a+' (Teil a).'),
+      parts:[pnum('Bestimme die Wahrscheinlichkeit f\u00fcr <b>h\u00f6chstens '+a+'</b> Personen mit Nebenwirkungen.','Bestimme',2,ha,2,
+          S(['\u201eH\u00f6chstens '+a+'\u201c bedeutet X \u2264 '+a+': Werte 0 bis '+a+' addieren.'].concat(termSteps(n,p,0,a)).concat(['Summe: P(X \u2264 '+a+') = '+f4(ha)]),'Mit einer Wahrscheinlichkeit von '+pc(ha)+' haben h\u00f6chstens '+a+' Personen Nebenwirkungen.')),
+        pnum('Bestimme die Wahrscheinlichkeit f\u00fcr <b>mindestens '+b+'</b> Personen mit Nebenwirkungen.','Bestimme',2,hb,2,
+          S(['Gegenereignis von X \u2265 '+b+' ist X \u2264 '+(b-1)+'.'].concat(termSteps(n,p,0,b-1)).concat(['P(X \u2264 '+(b-1)+') = '+f4(cum(n,p,0,b-1)),'P(X \u2265 '+b+') = 1 \u2212 '+f4(cum(n,p,0,b-1))+' = '+f4(hb)]),'Mit einer Wahrscheinlichkeit von '+pc(hb)+' haben mindestens '+b+' Personen Nebenwirkungen.'))]};
+  }
+  n=pick([8,10,12]);p=pick([0.6,0.7,0.8,0.9]);var c=Math.ceil(n*p);k=Math.max(2,c+pick([-2,-1,0,1]));if(k>n)k=n;
+  var G=0.8,val=1-cum(n,p,0,k-1),truth=val>=G,pe=binom(n,p,k),mu=n*p,pl=cum(n,p,0,k);
+  var cor='Die Aussage ist '+verdict(truth)+', denn P(X \u2265 '+k+') = '+pc(val,1)+'.';
+  var opts=mcBuild(cor,[
+    {t:'Die Aussage ist '+verdict(pe>=G)+', denn P(X = '+k+') = '+pc(pe,1)+'.',err:'Du hast \u201egenau '+k+'\u201c berechnet. Gefragt ist \u201emindestens '+k+'\u201c, also alle Werte ab '+k+'.'},
+    {t:'Die Aussage ist '+verdict(mu>=k)+', denn der Erwartungswert betr\u00e4gt '+fmt(mu,1)+'.',err:'Der Erwartungswert ist kein Wahrscheinlichkeitswert. Du musst P(X \u2265 '+k+') mit 80\u00a0% vergleichen.'},
+    {t:'Die Aussage ist '+verdict(pl>=G)+', denn P(X \u2264 '+k+') = '+pc(pl,1)+'.',err:'Du hast \u201eh\u00f6chstens '+k+'\u201c berechnet. Das Gegenereignis von \u201emindestens '+k+'\u201c ist \u201eh\u00f6chstens '+(k-1)+'\u201c.'}]);
+  return {text:'Ein Test f\u00fchrt bei <b>'+pc(p,0)+'</b> der F\u00e4lle zu einem verwertbaren Ergebnis. Es werden <b>'+n+'</b> unabh\u00e4ngige Tests durchgef\u00fchrt. X ist die Anzahl der verwertbaren Ergebnisse. Ein Teammitglied sagt: \u201eMit mindestens 80\u00a0% Wahrscheinlichkeit sind mindestens '+k+' Ergebnisse verwertbar.\u201c',
+    fig:figHist(n,p,function(i){return i>=k;},'Markiert: k \u2265 '+k+'.'),
+    parts:[pnum('Bestimme die Wahrscheinlichkeit P(X \u2265 '+k+').','Bestimme',2,val,2,
+        S(['Gegenereignis von X \u2265 '+k+' ist X \u2264 '+(k-1)+'.'].concat(termSteps(n,p,0,k-1)).concat(['P(X \u2264 '+(k-1)+') = '+f4(cum(n,p,0,k-1)),'P(X \u2265 '+k+') = 1 \u2212 '+f4(cum(n,p,0,k-1))+' = '+f4(val)]),'Mit einer Wahrscheinlichkeit von '+pc(val)+' sind mindestens '+k+' Ergebnisse verwertbar.')),
+      pmc('Beurteile die Aussage des Teammitglieds.','Beurteile',3,opts,2,S(['Vergleich: '+pc(val,1)+(truth?' \u2265 ':' < ')+'80\u00a0%.'],'Die Aussage ist '+verdict(truth)+': P(X \u2265 '+k+') = '+pc(val,1)+'.'))]};
+};
+
+/* ---------- F: Erwartungswert, Histogramm, n gesucht ---------- */
+GENS.F=function(l){
+  var n,p,z,m,x,N;
+  if(l===1){
+    n=pick([20,25,40,50]);p=pick([0.1,0.2,0.4,0.5,0.6]);x=n*p;
+    return {text:'In einer Kita werden <b>'+n+' Kinder</b> untersucht. Jedes Kind hat unabh\u00e4ngig von den anderen mit einer Wahrscheinlichkeit von <b>'+pc(p,0)+'</b> eine Auff\u00e4lligkeit. X ist die Anzahl der Kinder mit Auff\u00e4lligkeit.',
+      fig:figHist(n,p,function(i){return false;},'Der gestrichelte Strich zeigt den Erwartungswert.').replace('</svg>','</svg>'),
+      parts:[pnum('Berechne den Erwartungswert von X.','Berechne',1,x,2,S(['Erwartungswert einer Binomialverteilung: \u03bc = n \u00b7 p.','\u03bc = '+n+' \u00b7 '+fmt(p,2)+' = '+fmt(x,2)],'Im Mittel haben '+fmt(x,2)+' Kinder eine Auff\u00e4lligkeit.'),'num')]};
+  }
+  p=pick([0.05,0.07,0.1,0.15,0.2]);z=pick([0.9,0.95,0.99]);m=pick([10,20,30]);N=1;
+  while(1-Math.pow(1-p,N)<z-1e-12)N++;
+  if(l===2){
+    var q=1-Math.pow(1-p,m),nr=Math.log(1-z)/Math.log(1-p);
+    return {text:'<b>'+pc(p,0)+'</b> der Menschen in einer Region haben eine seltene Stoffwechselkrankheit. Personen werden unabh\u00e4ngig voneinander untersucht. X ist die Anzahl der Erkrankten unter den Untersuchten.',
+      fig:'<div class="fig">'+drawHist(m,p,function(i){return i>=1;},'Histogramm f\u00fcr n = '+m+' und p = '+fmt(p,2))+'<div class="cap">Histogramm f\u00fcr n = '+m+' und p = '+fmt(p,2)+'. Markiert: k \u2265 1 (Teil a).</div></div>',
+      parts:[pnum('Bestimme die Wahrscheinlichkeit, dass unter <b>'+m+'</b> untersuchten Personen <b>mindestens eine</b> erkrankt ist.','Bestimme',2,q,2,
+          S(['Gegenereignis: keine erkrankte Person. P(X = 0) = '+fmt(1-p,2)+sup(m)+' = '+f4(Math.pow(1-p,m)),'P(X \u2265 1) = 1 \u2212 '+f4(Math.pow(1-p,m))+' = '+f4(q)],'Mit '+pc(q)+' ist unter '+m+' Personen mindestens eine erkrankt.')),
+        pnum('Bestimme die kleinste Anzahl n, damit mit einer Wahrscheinlichkeit von mindestens <b>'+pc(z,0)+'</b> mindestens eine erkrankte Person gefunden wird (ganze Zahl).','Bestimme',2,N,2,
+          S(['Ansatz: 1 \u2212 '+fmt(1-p,2)+sup('n')+' \u2265 '+fmt(z,2)+', also '+fmt(1-p,2)+sup('n')+' \u2264 '+fmt(1-z,2),'Logarithmus: n \u00b7 ln('+fmt(1-p,2)+') \u2264 ln('+fmt(1-z,2)+')','ln('+fmt(1-p,2)+') ist negativ, daher dreht sich das Zeichen: n \u2265 '+fr('ln('+fmt(1-z,2)+')','ln('+fmt(1-p,2)+')')+' = '+fmt(nr,2),'Aufrunden auf eine ganze Zahl: n = '+N],'Es m\u00fcssen mindestens '+N+' Personen untersucht werden.'),'int')]};
+  }
+  n=pick([10,20]);var pp=pick([0.2,0.3,0.4,0.6,0.7,0.8]);var md=Math.round(n*pp),mu=n*pp,q2=1-pp;
+  var cor='Das Histogramm wird an der Mitte gespiegelt, der Erwartungswert wird '+fmt(n*q2,1)+'.';
+  var opts=mcBuild(cor,[
+    {t:'Das Histogramm bleibt gleich, nur der Erwartungswert wird '+fmt(n*q2,1)+'.',err:'Mit p \u2192 1 \u2212 p ver\u00e4ndert sich auch die Lage der Balken. Sie werden gespiegelt.'},
+    {t:'Das Histogramm wird gespiegelt, der Erwartungswert bleibt '+fmt(mu,1)+'.',err:'Der Erwartungswert n \u00b7 p \u00e4ndert sich mit p. Er wird zu n \u00b7 (1 \u2212 p).'},
+    {t:'Das Histogramm wird nach rechts verschoben, die Form bleibt gleich.',err:'Es handelt sich nicht um eine Verschiebung, sondern um eine Spiegelung an der Mitte n/2.'}]);
+  return {text:'In einer Gruppe von <b>'+n+' Personen</b> wirkt ein Mittel bei jeder Person unabh\u00e4ngig mit einer Wahrscheinlichkeit von <b>'+pc(pp,0)+'</b>. X ist die Anzahl der Personen, bei denen das Mittel wirkt.',
+    fig:figHist(n,pp,function(i){return i===md;},'Markiert: wahrscheinlichster Wert.').replace('</svg>','</svg>'),
+    parts:[pnum('Bestimme den wahrscheinlichsten Wert von X (h\u00f6chster Balken, ganze Zahl).','Bestimme',2,md,2,S(['Bei ganzzahligem n \u00b7 p liegt der h\u00f6chste Balken bei \u03bc = n \u00b7 p.','\u03bc = '+n+' \u00b7 '+fmt(pp,2)+' = '+fmt(mu,1)],'Am wahrscheinlichsten wirkt das Mittel bei '+md+' Personen.'),'int'),
+      pmc('Beurteile, wie sich Histogramm und Erwartungswert \u00e4ndern, wenn p durch 1 \u2212 p = '+fmt(q2,2)+' ersetzt wird.','Beurteile',3,opts,2,
+        S(['Symmetrie: B(n; p; k) = B(n; 1 \u2212 p; n \u2212 k).','Neuer Erwartungswert: '+n+' \u00b7 '+fmt(q2,2)+' = '+fmt(n*q2,1)],'Das Histogramm wird an der Mitte gespiegelt und der Erwartungswert betr\u00e4gt '+fmt(n*q2,1)+'.'))]};
+};
+
+function makeTask(typeId,lvl){
+  var g=GENS[typeId](lvl),i,sw=0;
+  g.type=typeId;g.lvl=lvl;g.comp=MK[typeId][lvl-1];
+  var afb=0;for(i=0;i<g.parts.length;i++){if(g.parts[i].afb>afb)afb=g.parts[i].afb;}
+  g.afb=Math.max(afb,lvl===1?1:lvl);
+  /* AFB der Aufgabe = Stufe */
+  g.afb=lvl;
+  var tot=(lvl===1)?2:4;
+  for(i=0;i<g.parts.length;i++)sw+=g.parts[i].w;
+  for(i=0;i<g.parts.length;i++)g.parts[i].pts=g.parts[i].w*tot/sw;
+  g.total=tot;
+  return g;
+}
+/* ===== Zustand und Speicher ===== */
+var DEFAULT={stats:{done:0,right:0,best:0},badges:{},tests:[],read:false};
+var data=load();
+function load(){try{var s=localStorage.getItem(STORE_KEY);if(s){var o=JSON.parse(s);if(o&&o.stats)return o;}}catch(e){}return JSON.parse(JSON.stringify(DEFAULT));}
+function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify(data));}catch(e){}}
+var st={view:'start',pType:'*',pLvl:0,pTask:null,pRes:null,streak:0,test:null,cardIdx:0};
+var app=document.getElementById('app'),nav=document.getElementById('nav'),toastEl=document.getElementById('toast');
+
+/* ===== Badges ===== */
+var BADGES=[
+ {id:'fb1',n:'Flei\u00dfbienchen',t:'bronze',d:'15 Aufgaben ge\u00fcbt',c:function(){return data.stats.done>=15;}},
+ {id:'fb2',n:'Flei\u00dfbienchen',t:'silber',d:'50 Aufgaben ge\u00fcbt',c:function(){return data.stats.done>=50;}},
+ {id:'fb3',n:'Flei\u00dfbienchen',t:'gold',d:'100 Aufgaben ge\u00fcbt',c:function(){return data.stats.done>=100;}},
+ {id:'ss1',n:'Serienstarter',t:'bronze',d:'5 Aufgaben in Folge richtig',c:function(){return data.stats.best>=5;}},
+ {id:'ss2',n:'Serienstarter',t:'silber',d:'15 Aufgaben in Folge richtig',c:function(){return data.stats.best>=15;}},
+ {id:'ss3',n:'Serienstarter',t:'gold',d:'Selbsttest ohne Fehler',c:function(x){return !!(x&&x.perfect);}},
+ {id:'fp1',n:'Fachprofi',t:'bronze',d:'1 Aufgabe richtig gel\u00f6st',c:function(){return data.stats.right>=1;}},
+ {id:'fp2',n:'Fachprofi',t:'silber',d:'10 Aufgaben richtig gel\u00f6st',c:function(){return data.stats.right>=10;}},
+ {id:'fp3',n:'Fachprofi',t:'gold',d:'Alle Aufgaben im Selbsttest richtig',c:function(x){return !!(x&&x.perfect);}},
+ {id:'lw',n:'Lesewurm',t:'einzel',d:'Infoseite ge\u00f6ffnet',c:function(){return !!data.read;}},
+ {id:'ck',n:'Checker',t:'einzel',d:'Selbsttest mindestens ausreichend',c:function(x){return !!(x&&x.np>=4);}}
+];
+var toastQ=[],toastBusy=false;
+function medal(t,txt){return '<span class="medal m-'+t+'" aria-hidden="true"><b>&#9733;</b>'+(t==='einzel'?'':t.charAt(0).toUpperCase()+t.slice(1))+'</span>';}
+function toast(html){toastQ.push(html);if(!toastBusy)nextToast();}
+function nextToast(){if(!toastQ.length){toastBusy=false;toastEl.style.display='none';return;}toastBusy=true;toastEl.innerHTML=toastQ.shift();toastEl.style.display='flex';setTimeout(nextToast,3200);}
+function checkBadges(x){
+  var i,b;
+  for(i=0;i<BADGES.length;i++){b=BADGES[i];
+    if(!data.badges[b.id]&&b.c(x)){data.badges[b.id]=true;toast(medal(b.t)+'<div><b>Neues Abzeichen: '+b.n+(b.t==='einzel'?'':' ('+b.t.charAt(0).toUpperCase()+b.t.slice(1)+')')+'</b><br><small>'+b.d+'</small></div>');}}
+  save();
+}
+
+/* ===== Lob ===== */
+var LOB=['Stark gemacht!','Genau richtig!','Das sitzt \u2013 weiter so!','Sehr sauber gerechnet!','Top, du hast den Dreh raus!','Klasse Leistung!','Das war pr\u00e4zise!','Richtig, du bist auf einem guten Weg!','Wunderbar, genau so geht es!','Spitze, dein Ergebnis stimmt!'];
+var LOBH=['Das war eine knifflige Aufgabe und du hast sie geknackt!','Beurteilen ist schwer \u2013 das hast du richtig gut gemacht!','Respekt, das war Pr\u00fcfungsniveau!','Starke Begr\u00fcndung, so punktest du in der Pr\u00fcfung!','Schwere Aufgabe, souver\u00e4n gel\u00f6st!'];
+var LOBS={3:'Drei richtige Aufgaben in Folge \u2013 du bist im Flow!',5:'F\u00fcnf in Folge \u2013 richtig stark!',10:'Zehn in Folge \u2013 das ist Profi-Niveau!',15:'F\u00fcnfzehn in Folge \u2013 unglaublich!'};
+var AUF=['Nicht schlimm, aus Fehlern lernt man. Schau dir den L\u00f6sungsweg in Ruhe an.','Fast! Mit dem L\u00f6sungsweg klappt die n\u00e4chste Aufgabe bestimmt.','Das war knifflig. Bleib dran, du schaffst das!','Jeder Fehler bringt dich weiter. Probiere die n\u00e4chste Aufgabe!','Kopf hoch! Vergleiche deinen Weg mit dem L\u00f6sungsweg und versuche es erneut.'];
+
+/* ===== Antworten pr\u00fcfen ===== */
+function parseNum(s){
+  s=String(s).replace(/\s+/g,'').replace(/,/g,'.');
+  var pct=/%$/.test(s),m,v;s=s.replace(/%$/,'');
+  m=s.match(/^(-?\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)$/);
+  if(m){v=parseFloat(m[1])/parseFloat(m[2]);}else if(/^-?\d+(\.\d+)?$/.test(s)){v=parseFloat(s);}else return null;
+  if(!isFinite(v))return null;
+  return {v:v,pct:pct};
+}
+function evalPart(part,val){
+  if(part.kind==='mc'){return val!==undefined&&val!==null&&part.options[val]&&part.options[val].ok===true;}
+  var r=parseNum(val===undefined?'':val);if(!r)return false;var v=r.v;
+  if(part.kind==='p'){if(r.pct||v>1)v=v/100;return Math.abs(v-part.answer)<=part.tol;}
+  if(part.kind==='int'){return Math.abs(v-part.answer)<1e-9;}
+  return Math.abs(v-part.answer)<=part.tol;
+}
+function ansText(part){
+  if(part.kind==='mc'){var i;for(i=0;i<part.options.length;i++)if(part.options[i].ok)return part.options[i].t;}
+  if(part.kind==='p')return f4(part.answer)+' ('+pc(part.answer)+')';
+  if(part.kind==='int')return String(part.answer);
+  return fmt(part.answer,2);
+}
+
+/* ===== Aufgabenanzeige ===== */
+var LET='abcdefgh';
+function chips(t){
+  var tp=TYPES.filter(function(x){return x.id===t.type;})[0];
+  return '<span class="chip">'+t.comp+'</span><span class="chip l">AFB '+['','I','II','III'][t.lvl]+'</span><span class="chip l">'+tp.name+'</span>';
+}
+function partHTML(t,i,mode,vals,res){
+  var p=t.parts[i],h='',cls='',k;
+  if(res){cls=res[i]?' ok':' bad';}
+  h+='<div class="part'+cls+'"><div><span class="lab">'+LET.charAt(i)+')</span> '+p.label+' <span class="cap">('+p.op+', AFB '+['','I','II','III'][p.afb]+(mode==='test'?', '+fmt(p.pts,0)+' P.':'')+')</span></div>';
+  var locked=(res!==null&&res!==undefined);
+  if(p.kind==='mc'){
+    for(k=0;k<p.options.length;k++){
+      var c='opt',pre='';
+      if(vals[i]===k)c+=' sel';
+      if(locked){if(p.options[k].ok){c='opt right';pre='<span class="lab ok">Richtig: </span>';}else if(vals[i]===k){c='opt wrong';pre='<span class="lab bad">Nicht richtig: </span>';}}
+      h+='<button type="button" class="'+c+'" data-p="'+i+'" data-o="'+k+'"'+(locked?' disabled':'')+' aria-pressed="'+(vals[i]===k)+'">'+pre+p.options[k].t+'</button>';
+    }
+    if(locked&&!res[i]&&vals[i]!==undefined&&vals[i]!==null){h+='<div class="fb bad">Nicht richtig. '+p.options[vals[i]].err+'</div>';}
+    else if(locked&&!res[i]){h+='<div class="fb bad">Nicht beantwortet.</div>';}
+  }else{
+    var hint=p.kind==='p'?'z.\u00a0B. 0,25 oder 25\u00a0%':(p.kind==='int'?'ganze Zahl':'Zahl');
+    h+='<div class="row"><label for="in'+i+'" class="cap">Antwort:</label><input type="text" id="in'+i+'" inputmode="decimal" autocomplete="off" placeholder="'+hint+'" value="'+esc(vals[i]===undefined?'':vals[i])+'"'+(locked?' disabled':'')+'></div>';
+    if(locked){h+=res[i]?'<div><span class="lab ok">Richtig.</span></div>':'<div><span class="lab bad">Nicht richtig.</span> <span class="corr">Richtige L\u00f6sung: '+ansText(p)+'</span></div>';}
+  }
+  return h+'</div>';
+}
+function solHTML(t,openAll){
+  var h='<details'+(openAll?' open':'')+'><summary>L\u00f6sungsweg</summary>',i,j;
+  for(i=0;i<t.parts.length;i++){var s=t.parts[i].sol;h+='<div><b>'+LET.charAt(i)+')</b><ol>';for(j=0;j<s.steps.length;j++)h+='<li>'+s.steps[j]+'</li>';h+='</ol><div class="sent">'+s.sentence+'</div></div>';}
+  return h+'</details>';
+}
+function readVals(t,cur){
+  var i,v=cur.slice();
+  for(i=0;i<t.parts.length;i++){if(t.parts[i].kind!=='mc'){var el=document.getElementById('in'+i);if(el)v[i]=el.value;}}
+  return v;
+}
+function bindOpts(root,t,vals,onChange){
+  var bs=root.querySelectorAll('button.opt'),i;
+  for(i=0;i<bs.length;i++){(function(b){b.onclick=function(){var pi=parseInt(b.getAttribute('data-p'),10),o=parseInt(b.getAttribute('data-o'),10);vals[pi]=o;var all=root.querySelectorAll('button.opt[data-p="'+pi+'"]'),j;for(j=0;j<all.length;j++){all[j].className='opt'+(all[j]===b?' sel':'');all[j].setAttribute('aria-pressed',all[j]===b?'true':'false');}if(onChange)onChange();};})(bs[i]);}
+}
+
+/* ===== Navigation ===== */
+var VIEWS=[['start','Start'],['info','Info'],['ueben','\u00dcben'],['test','Selbsttest'],['badges','Abzeichen']];
+function testRunning(){return st.test&&!st.test.done&&st.test.started;}
+function renderNav(){
+  nav.innerHTML='';
+  VIEWS.forEach(function(v){
+    var b=document.createElement('button');b.type='button';b.textContent=v[1];
+    var lock=testRunning()&&v[0]!=='test';
+    if(lock){b.disabled=true;b.title='W\u00e4hrend des Selbsttests gesperrt';b.setAttribute('aria-label',v[1]+' (w\u00e4hrend des Selbsttests gesperrt)');}
+    if(st.view===v[0])b.className='on';
+    b.onclick=function(){go(v[0]);};
+    nav.appendChild(b);
+  });
+}
+function go(v){
+  if(testRunning()&&v!=='test')return;
+  st.view=v;render();app.scrollTop=0;window.scrollTo(0,0);
+}
+function render(){
+  renderNav();
+  ({start:vStart,info:vInfo,ueben:vUeben,test:vTest,badges:vBadges})[st.view]();
+}
+function modal(html,buttons){
+  var m=document.createElement('div');m.className='modal';m.setAttribute('role','dialog');m.setAttribute('aria-modal','true');
+  var d=document.createElement('div');d.innerHTML='<p>'+html+'</p>';
+  var r=document.createElement('div');r.className='row';
+  buttons.forEach(function(b){var x=document.createElement('button');x.type='button';x.textContent=b[0];if(b[2])x.className='pri';x.onclick=function(){document.body.removeChild(m);if(b[1])b[1]();};r.appendChild(x);});
+  d.appendChild(r);m.appendChild(d);document.body.appendChild(m);
+  var f=r.querySelector('button');if(f)f.focus();
+}
+
+/* ===== Startseite ===== */
+function vStart(){
+  var h='<div class="page"><div class="card"><h2>Willkommen!</h2><p>Hier \u00fcbst du Wahrscheinlichkeitsrechnung im Niveau der Abschlusspr\u00fcfung: Baumdiagramm, Vierfeldertafel, Satz von Bayes und Binomialverteilung. Alle Aufgaben stammen aus dem Gesundheits- und Sozialwesen. Die Zahlen werden bei jedem Aufruf neu gew\u00fcrfelt.</p>';
+  h+='<div class="row"><button type="button" class="pri" data-g="info">Info und Kannliste</button><button type="button" class="pri" data-g="ueben">\u00dcben</button><button type="button" class="pri" data-g="test">Selbsttest (30 Punkte)</button><button type="button" class="pri" data-g="badges">Abzeichen</button></div></div>';
+  var nb=0,k;for(k in data.badges)if(data.badges[k])nb++;
+  var last=data.tests.length?data.tests[data.tests.length-1]:null;
+  h+='<div class="card"><h2>Dein Stand</h2><p>Ge\u00fcbte Aufgaben: <b>'+data.stats.done+'</b> &middot; davon richtig: <b>'+data.stats.right+'</b> &middot; l\u00e4ngste Serie: <b>'+data.stats.best+'</b> &middot; Abzeichen: <b>'+nb+' von '+BADGES.length+'</b>'+(last?'<br>Letzter Selbsttest: '+fmt(last.pts,0)+' von 30 Punkten, '+last.np+' Notenpunkte ('+last.date+')':'')+'</p><p class="cap">Dein Fortschritt wird nur in diesem Browser gespeichert. Es werden keine Daten gesendet.</p><button type="button" id="reset">Fortschritt zur\u00fccksetzen</button></div></div>';
+  app.innerHTML=h;
+  [].forEach.call(app.querySelectorAll('[data-g]'),function(b){b.onclick=function(){go(b.getAttribute('data-g'));};});
+  document.getElementById('reset').onclick=function(){modal('M\u00f6chtest du deinen gesamten Fortschritt und alle Abzeichen wirklich l\u00f6schen?',[['Ja, l\u00f6schen',function(){data=JSON.parse(JSON.stringify(DEFAULT));save();st.streak=0;render();},true],['Abbrechen']]);};
+}
+
+/* ===== Badges-Seite ===== */
+function vBadges(){
+  var h='<div class="page"><div class="card"><h2>Abzeichen</h2><p class="cap">Noch nicht freigeschaltete Abzeichen bleiben geheim. Probiere aus, was du erreichen kannst.</p><div class="badges">',i,b,n=0;
+  for(i=0;i<BADGES.length;i++){b=BADGES[i];
+    if(data.badges[b.id]){n++;h+='<div class="bd">'+medal(b.t).replace('class="medal','class="medal')+'<div><b>'+b.n+'</b><br><span class="cap">'+(b.t==='einzel'?'Einzelabzeichen':b.t.charAt(0).toUpperCase()+b.t.slice(1))+'</span><br><span class="cap">'+b.d+'</span></div></div>';}
+    else h+='<div class="bd"><span class="medal m-lock" aria-hidden="true"><b>?</b></span><div><b>Geheim</b><br><span class="cap">noch nicht freigeschaltet</span></div></div>';}
+  h+='</div><p><b>'+n+' von '+BADGES.length+'</b> Abzeichen freigeschaltet.</p></div></div>';
+  app.innerHTML=h;
+}
+
+/* ===== Infoseite ===== */
+var GLOS=[
+ ['Zufallsexperiment','Ein Vorgang mit mehreren m\u00f6glichen Ergebnissen. Du kannst nicht vorhersagen, welches eintritt (z.\u00a0B. Los ziehen).'],
+ ['Ereignis A, Gegenereignis \u0100','A ist eine Menge von Ergebnissen. \u0100 tritt genau dann ein, wenn A nicht eintritt. P(\u0100) = 1 \u2212 P(A).'],
+ ['P(A), Laplace','Wahrscheinlichkeit von A. Bei gleich wahrscheinlichen Ergebnissen: Anzahl der g\u00fcnstigen geteilt durch Anzahl aller Ergebnisse.'],
+ ['Baumdiagramm, Pfadregeln','1. Pfadregel: Entlang eines Pfads multiplizierst du. 2. Pfadregel: Geh\u00f6ren mehrere Pfade zum Ereignis, addierst du ihre Wahrscheinlichkeiten.'],
+ ['mit / ohne Zur\u00fccklegen','Mit Zur\u00fccklegen bleiben die Wahrscheinlichkeiten in jeder Stufe gleich. Ohne Zur\u00fccklegen \u00e4ndern sich Z\u00e4hler und Nenner.'],
+ ['Bedingte Wahrscheinlichkeit P'+pb('A')+'(B)','Wahrscheinlichkeit von B, wenn A schon eingetreten ist. Es gilt P'+pb('A')+'(B) = P(A \u2229 B) : P(A). Im Nenner steht die Bedingung.'],
+ ['Unabh\u00e4ngigkeit','A und B sind stochastisch unabh\u00e4ngig, wenn P(A \u2229 B) = P(A) \u00b7 P(B) gilt, gleichwertig P'+pb('A')+'(B) = P(B).'],
+ ['Sensitivit\u00e4t, Spezifit\u00e4t','Sensitivit\u00e4t: Anteil der Kranken, die positiv getestet werden. Spezifit\u00e4t: Anteil der Gesunden, die negativ getestet werden.'],
+ ['Satz von Bayes','P'+pb('B')+'(A) = P(A) \u00b7 P'+pb('A')+'(B) : P(B). Mit P(B) als Summe der Pfade (totale Wahrscheinlichkeit).'],
+ ['Bernoulli-Kette','n unabh\u00e4ngige Versuche mit je zwei Ausg\u00e4ngen (Treffer, Niete) und gleicher Trefferwahrscheinlichkeit p.'],
+ ['n, p, k, X','n: Anzahl der Versuche, p: Trefferwahrscheinlichkeit, k: gesuchte Trefferzahl, X: Zufallsgr\u00f6\u00dfe \u201eAnzahl der Treffer\u201c.'],
+ ['Binomialverteilung','P(X = k) = C(n; k) \u00b7 p'+sup('k')+' \u00b7 (1 \u2212 p)'+sup('n\u2212k')+'. C(n; k) ist die Taste nCr am Taschenrechner.'],
+ ['Erwartungswert \u03bc','\u03bc = n \u00b7 p. Das ist die mittlere Trefferzahl auf lange Sicht.']
+];
+function vInfo(){
+  data.read=true;checkBadges();
+  var h='<div class="page"><div class="card"><h2>Kannliste</h2><p class="cap">Zu jeder Kompetenz gibt es passende Aufgaben im \u00dcbungsbereich.</p>',i,j;
+  var cmap={M1:'A',M2:'B',M3:'B',M4:'C',M5:'C',M6:'D',M7:'E',M8:'F'};
+  for(i=0;i<KANN.length;i++){h+='<div class="kan"><b>'+KANN[i][0]+'</b><span class="t">'+KANN[i][1]+'</span><button type="button" data-t="'+cmap[KANN[i][0]]+'">Zu den Aufgaben</button></div>';}
+  h+='<h3>Zuordnung der Aufgabentypen</h3><table class="t"><tr><th>Typ</th><th>Aufgabentyp</th><th>Stufe 1 (AFB I)</th><th>Stufe 2 (AFB II)</th><th>Stufe 3 (AFB III)</th></tr>';
+  for(i=0;i<TYPES.length;i++){h+='<tr><td>'+TYPES[i].id+'</td><td style="text-align:left">'+TYPES[i].name+'</td><td>'+MK[TYPES[i].id][0]+'</td><td>'+MK[TYPES[i].id][1]+'</td><td>'+MK[TYPES[i].id][2]+'</td></tr>';}
+  h+='</table><p class="cap">Operatoren: Stufe 1 \u2013 '+OPS[1]+'. Stufe 2 \u2013 '+OPS[2]+'. Stufe 3 \u2013 '+OPS[3]+'.</p></div>';
+  h+='<div class="card"><h2>Begriffe und Formelzeichen</h2><dl class="gl">';
+  for(i=0;i<GLOS.length;i++)h+='<dt>'+GLOS[i][0]+'</dt><dd>'+GLOS[i][1]+'</dd>';
+  h+='</dl></div>';
+  /* Beispiel */
+  var pr=0.03,se=0.90,sp=0.95,pp=pr*se+(1-pr)*(1-sp),bay=pr*se/pp;
+  h+='<div class="card"><h2>Beispiel: Ein positiver Schnelltest</h2><p>In einer Beratungsstelle sind <b>3\u00a0%</b> der Personen infiziert. Der Test erkennt <b>90\u00a0%</b> der Infizierten (positiv) und ist bei <b>95\u00a0%</b> der Nichtinfizierten negativ. Wie wahrscheinlich ist eine Infektion nach einem positiven Test?</p><ol>'+
+   '<li>Baum zeichnen: Stufe 1 infiziert (0,03) oder nicht (0,97), Stufe 2 positiv oder negativ.</li>'+
+   '<li>Pfad \u201einfiziert und positiv\u201c: 0,03 \u00b7 0,90 = '+f4(pr*se)+'</li>'+
+   '<li>Pfad \u201enicht infiziert und positiv\u201c: 0,97 \u00b7 0,05 = '+f4((1-pr)*(1-sp))+'</li>'+
+   '<li>Totale Wahrscheinlichkeit (Pfade addieren): P(+) = '+f4(pp)+'</li>'+
+   '<li>Satz von Bayes: P'+pb('+')+'(I) = '+fr(f4(pr*se),f4(pp))+' = '+f4(bay)+'</li>'+
+   '<li>Antwort in Worten: Nach einem positiven Test sind etwa '+pc(bay,1)+' der Personen infiziert.</li></ol>'+
+   '<p class="cap">Kontrolle mit nat\u00fcrlichen H\u00e4ufigkeiten: Von 10\u00a0000 Personen sind 300 infiziert, davon 270 positiv. Von 9\u00a0700 Nichtinfizierten sind 485 positiv.</p></div>';
+  h+='<div class="card"><h2>Beispiel: Binomialverteilung</h2><p>Ein Mittel wirkt bei 80\u00a0% der Personen. Wie wahrscheinlich wirkt es bei <b>genau 8 von 10</b> Personen?</p><ol><li>Bernoulli-Kette mit n = 10, p = 0,8, k = 8.</li><li>P(X = 8) = C(10; 8) \u00b7 0,8'+sup(8)+' \u00b7 0,2'+sup(2)+' = 45 \u00b7 0,1678 \u00b7 0,04</li><li>P(X = 8) = '+f4(binom(10,0.8,8))+'</li><li>Antwort in Worten: Bei genau 8 von 10 Personen wirkt das Mittel mit '+pc(binom(10,0.8,8))+'.</li></ol></div>';
+  h+='<div class="card"><h2>Grafik 1: Baumdiagramm zum Ausprobieren</h2><p class="cap">Ver\u00e4ndere die Regler. Baum und Rechnung passen sich sofort an. Du kannst die Regler auch mit den Pfeiltasten bedienen.</p><div id="tr"></div></div>';
+  h+='<div class="card"><h2>Grafik 2: Binomialverteilung zum Ausprobieren</h2><div id="bi"></div></div>';
+  h+='<div class="card"><h2>So bedienst du die App</h2><ul><li><b>\u00dcben:</b> W\u00e4hle Aufgabentyp und Stufe (oder \u201eGemischt\u201c). Gib dein Ergebnis ein und pr\u00fcfe. Danach siehst du den L\u00f6sungsweg zum Aufklappen.</li><li><b>Eingabe:</b> Wahrscheinlichkeiten als Dezimalzahl (0,25), in Prozent (25\u00a0%) oder als Bruch (1/4). Bei Auswahlfragen tippst du auf eine Antwort.</li><li><b>Selbsttest:</b> 10 Aufgaben mit 30 Punkten. W\u00e4hrend des Tests sind Info und \u00dcbungen gesperrt. Du bekommst die Auswertung erst nach dem Abgeben.</li><li><b>Bedienung:</b> Du kannst mit Maus, Touch und Tastatur arbeiten (Tab, Enter, Pfeiltasten).</li><li><b>Abzeichen:</b> Du sammelst sie durch \u00dcben und Testen.</li></ul></div></div>';
+  app.innerHTML=h;
+  [].forEach.call(app.querySelectorAll('[data-t]'),function(b){b.onclick=function(){st.pType=b.getAttribute('data-t');st.pTask=null;go('ueben');};});
+  infoTree();infoBino();
+}
+function infoTree(){
+  var box=document.getElementById('tr'),pA=0.3,pB1=0.8,pB2=0.1;
+  box.innerHTML='<div class="row"><label>P(A) = <b id="v1"></b><br><input type="range" id="s1" min="0" max="100" value="30"></label><label>P'+pb('A')+'(B) = <b id="v2"></b><br><input type="range" id="s2" min="0" max="100" value="80"></label><label>P'+pb('nicht A')+'(B) = <b id="v3"></b><br><input type="range" id="s3" min="0" max="100" value="10"></label></div><div class="fig" id="tsvg"></div><div id="tcalc"></div>';
+  function draw(){
+    var t=pA*pB1+(1-pA)*pB2,bay=t>0?pA*pB1/t:0;
+    document.getElementById('v1').textContent=fmt(pA,2);document.getElementById('v2').textContent=fmt(pB1,2);document.getElementById('v3').textContent=fmt(pB2,2);
+    var root={l:'Start',c:[{e:fmt(pA,2),n:{l:'A',c:[{e:fmt(pB1,2),n:{l:'B = '+f4(pA*pB1)}},{e:fmt(1-pB1,2),n:{l:'nicht B = '+f4(pA*(1-pB1))}}]}},{e:fmt(1-pA,2),n:{l:'nicht A',c:[{e:fmt(pB2,2),n:{l:'B = '+f4((1-pA)*pB2)}},{e:fmt(1-pB2,2),n:{l:'nicht B = '+f4((1-pA)*(1-pB2))}}]}}]};
+    document.getElementById('tsvg').innerHTML=drawTree(root,'Baumdiagramm mit Pfadwahrscheinlichkeiten')+'<div class="cap">Am Ende jedes Pfads steht seine Wahrscheinlichkeit (1. Pfadregel).</div>';
+    document.getElementById('tcalc').innerHTML='<p>P(B) = '+fmt(pA,2)+' \u00b7 '+fmt(pB1,2)+' + '+fmt(1-pA,2)+' \u00b7 '+fmt(pB2,2)+' = <b>'+f4(t)+'</b> (2. Pfadregel)</p><p>P'+pb('B')+'(A) = '+fr(f4(pA*pB1),f4(t))+' = <b>'+f4(bay)+'</b> (Satz von Bayes)</p>';
+  }
+  document.getElementById('s1').oninput=function(){pA=this.value/100;draw();};
+  document.getElementById('s2').oninput=function(){pB1=this.value/100;draw();};
+  document.getElementById('s3').oninput=function(){pB2=this.value/100;draw();};
+  draw();
+}
+function infoBino(){
+  var box=document.getElementById('bi'),n=10,p=0.8,k=8,mode='eq';
+  box.innerHTML='<div class="row"><label>n = <b id="bn"></b><br><input type="range" id="sn" min="1" max="30" value="10"></label><label>p = <b id="bp"></b><br><input type="range" id="sp" min="5" max="95" value="80"></label><label>k = <b id="bk"></b><br><input type="range" id="sk" min="0" max="10" value="8"></label></div><div class="row" id="bm" role="group" aria-label="Art der Wahrscheinlichkeit"></div><div class="fig" id="bh"></div><p id="bo"></p>';
+  var M=[['eq','genau k'],['le','h\u00f6chstens k'],['ge','mindestens k']],mb=document.getElementById('bm');
+  M.forEach(function(m){var b=document.createElement('button');b.type='button';b.textContent=m[1];b.setAttribute('data-m',m[0]);b.onclick=function(){mode=m[0];draw();};mb.appendChild(b);});
+  function inSel(i){return mode==='eq'?i===k:mode==='le'?i<=k:i>=k;}
+  function draw(){
+    if(k>n)k=n;var sk=document.getElementById('sk');sk.max=n;sk.value=k;
+    document.getElementById('bn').textContent=n;document.getElementById('bp').textContent=fmt(p,2);document.getElementById('bk').textContent=k;
+    [].forEach.call(mb.children,function(b){b.className=b.getAttribute('data-m')===mode?'on':'';});
+    var sum=0,i;for(i=0;i<=n;i++)if(inSel(i))sum+=binom(n,p,i);
+    document.getElementById('bh').innerHTML=drawHist(n,p,inSel,'Histogramm',true)+'<div class="cap">Orange mit schwarzem Rand: Balken der gew\u00e4hlten Wahrscheinlichkeit. Gestrichelt: Erwartungswert.</div>';
+    var lab=mode==='eq'?'P(X = '+k+')':mode==='le'?'P(X \u2264 '+k+')':'P(X \u2265 '+k+')';
+    document.getElementById('bo').innerHTML=lab+' = <b>'+f4(sum)+'</b> ('+pc(sum)+'). Erwartungswert \u03bc = n \u00b7 p = '+n+' \u00b7 '+fmt(p,2)+' = <b>'+fmt(n*p,2)+'</b>.';
+  }
+  document.getElementById('sn').oninput=function(){n=parseInt(this.value,10);draw();};
+  document.getElementById('sp').oninput=function(){p=this.value/100;draw();};
+  document.getElementById('sk').oninput=function(){k=parseInt(this.value,10);draw();};
+  draw();
+}
+
+/* ===== \u00dcben ===== */
+function newPractice(){
+  var ids=TYPES.map(function(t){return t.id;}),tid=st.pType==='*'?pick(ids):st.pType,lv=st.pLvl===0?pick([1,2,3]):st.pLvl;
+  st.pTask=makeTask(tid,lv);st.pTask.vals=[];st.pRes=null;
+}
+function vUeben(){
+  if(!st.pTask)newPractice();
+  var h='<div class="fit"><div class="bar card noprint" style="margin:0;padding:.4rem .7rem"><div class="row"><label for="ty">Aufgabentyp:</label><select id="ty"><option value="*">Alle Typen</option>',i;
+  for(i=0;i<TYPES.length;i++)h+='<option value="'+TYPES[i].id+'"'+(st.pType===TYPES[i].id?' selected':'')+'>'+TYPES[i].id+': '+TYPES[i].name+'</option>';
+  h+='</select><label for="lv">Stufe:</label><select id="lv"><option value="0"'+(st.pLvl===0?' selected':'')+'>Gemischt</option><option value="1"'+(st.pLvl===1?' selected':'')+'>1 grundlegend</option><option value="2"'+(st.pLvl===2?' selected':'')+'>2 erweitert</option><option value="3"'+(st.pLvl===3?' selected':'')+'>3 vertiefend</option></select><button type="button" id="nt">Neue Aufgabe</button><span class="mut">Serie richtig: <b>'+st.streak+'</b></span></div></div>';
+  h+='<div class="pane" id="lp"></div><div class="pane" id="rp"></div></div>';
+  app.innerHTML=h;
+  document.getElementById('ty').onchange=function(){st.pType=this.value;newPractice();vUeben();};
+  document.getElementById('lv').onchange=function(){st.pLvl=parseInt(this.value,10);newPractice();vUeben();};
+  document.getElementById('nt').onclick=function(){newPractice();vUeben();};
+  drawPractice();
+}
+function drawPractice(){
+  var t=st.pTask,lp=document.getElementById('lp'),rp=document.getElementById('rp'),h,i;
+  h='<p>'+chips(t)+'</p><p>'+t.text+'</p>';
+  for(i=0;i<t.parts.length;i++)h+=partHTML(t,i,'practice',t.vals,st.pRes);
+  if(!st.pRes)h+='<div class="row"><button type="button" class="pri" id="ck">Pr\u00fcfen</button></div>';
+  else h+='<div class="row"><button type="button" class="pri" id="nx">N\u00e4chste Aufgabe</button></div>';
+  lp.innerHTML=h;
+  rp.innerHTML=t.fig+(st.pRes?st.fbHTML:'<div class="hint cap" style="margin-top:.6rem">Gib dein Ergebnis ein und tippe auf \u201ePr\u00fcfen\u201c. Danach erscheinen R\u00fcckmeldung und L\u00f6sungsweg.</div>');
+  if(!st.pRes){
+    bindOpts(lp,t,t.vals);
+    var ck=document.getElementById('ck');
+    ck.onclick=function(){checkPractice();};
+    [].forEach.call(lp.querySelectorAll('input[type=text]'),function(inp){inp.onkeydown=function(e){if(e.key==='Enter')checkPractice();};});
+  }else{document.getElementById('nx').onclick=function(){newPractice();vUeben();};}
+}
+function checkPractice(){
+  var t=st.pTask,i,res=[],all=true;
+  t.vals=readVals(t,t.vals);
+  for(i=0;i<t.parts.length;i++){var ok=evalPart(t.parts[i],t.vals[i]);res.push(ok);if(!ok)all=false;}
+  st.pRes=res;
+  data.stats.done++;
+  var msg;
+  if(all){data.stats.right++;st.streak++;if(st.streak>data.stats.best)data.stats.best=st.streak;
+    msg=LOBS[st.streak]?LOBS[st.streak]:(t.lvl===3?pick(LOBH):pick(LOB));}
+  else{st.streak=0;msg=pick(AUF);}
+  st.fbHTML='<div class="fb '+(all?'ok':'bad')+'" role="status"><span class="lab '+(all?'ok':'bad')+'">'+(all?'Richtig!':'Nicht richtig.')+'</span> '+msg+'</div>'+solHTML(t,false);
+  save();checkBadges();
+  vUeben();
+}
+
+/* ===== Selbsttest ===== */
+function newTest(){
+  var ids=TYPES.map(function(t){return t.id;}),a=shuffle(ids).slice(0,5),b=shuffle(ids).slice(0,5),tasks=[],i;
+  for(i=0;i<5;i++)tasks.push(makeTask(a[i],1));
+  for(i=0;i<5;i++)tasks.push(makeTask(b[i],pick([2,3])));
+  tasks.forEach(function(t){t.vals=[];});
+  return {tasks:tasks,idx:0,started:false,done:false,name:'',startAt:0};
+}
+function vTest(){
+  if(!st.test){st.test=newTest();}
+  var T=st.test;
+  if(T.done){return vResult();}
+  if(!T.started){
+    app.innerHTML='<div class="page"><div class="card"><h2>Selbsttest</h2><p>10 Aufgaben, insgesamt <b>30 Punkte</b>: Teil 1 mit 5 Aufgaben zu je 2 Punkten, Teil 2 mit 5 Aufgaben zu je 4 Punkten (mit Teilpunkten). Die Zahlen sind bei jedem Versuch neu. Taschenrechner ist erlaubt.</p><ul><li>W\u00e4hrend des Tests bekommst du keine R\u00fcckmeldung.</li><li>Info und \u00dcbungen sind gesperrt.</li><li>Die L\u00f6sungswege siehst du nach dem Abgeben.</li></ul><div class="row"><button type="button" class="pri" id="go">Test starten</button></div></div></div>';
+    document.getElementById('go').onclick=function(){T.started=true;T.startAt=Date.now();render();};
+    return;
+  }
+  var t=T.tasks[T.idx],h='<div class="fit"><div class="bar card" style="margin:0;padding:.4rem .7rem"><div class="row"><b>Aufgabe '+(T.idx+1)+' von 10</b><span class="mut">Teil '+(T.idx<5?'1 (2 Punkte)':'2 (4 Punkte)')+'</span><div class="dots" role="group" aria-label="Aufgaben\u00fcbersicht">',i;
+  for(i=0;i<10;i++){var ans=answered(T.tasks[i]);h+='<button type="button" data-n="'+i+'" class="'+(i===T.idx?'on':'')+(ans?' done':'')+'" aria-label="Aufgabe '+(i+1)+(ans?' (bearbeitet)':'')+'">'+(i+1)+(ans?'\u2713':'')+'</button>';}
+  h+='</div></div></div><div class="pane" id="lp"></div><div class="pane" id="rp"></div></div>';
+  app.innerHTML=h;
+  [].forEach.call(app.querySelectorAll('.dots button'),function(b){b.onclick=function(){saveCur();T.idx=parseInt(b.getAttribute('data-n'),10);vTest();};});
+  var lp=document.getElementById('lp'),rp=document.getElementById('rp'),x='<p>'+chips(t)+'</p><p>'+t.text+'</p>';
+  for(i=0;i<t.parts.length;i++)x+=partHTML(t,i,'test',t.vals,null);
+  x+='<div class="row" style="margin-top:.4rem"><button type="button" id="pv"'+(T.idx===0?' disabled':'')+'>Zur\u00fcck</button>'+(T.idx<9?'<button type="button" class="pri" id="nx">Weiter</button>':'')+'<button type="button" class="pri" id="sub">Abgeben</button><button type="button" id="ab">Test abbrechen</button></div>';
+  lp.innerHTML=x;rp.innerHTML=t.fig;
+  bindOpts(lp,t,t.vals,function(){});
+  function saveCur(){t.vals=readVals(t,t.vals);}
+  document.getElementById('pv').onclick=function(){saveCur();T.idx--;vTest();};
+  var nx=document.getElementById('nx');if(nx)nx.onclick=function(){saveCur();T.idx++;vTest();};
+  document.getElementById('sub').onclick=function(){saveCur();var open=T.tasks.filter(function(q){return !answered(q);}).length;
+    if(open>0)modal('Bei '+open+' Aufgabe'+(open===1?'':'n')+' fehlt noch eine Antwort. Trotzdem abgeben?',[['Ja, abgeben',function(){finishTest();},true],['Weiterarbeiten']]);
+    else finishTest();};
+  document.getElementById('ab').onclick=function(){modal('M\u00f6chtest du den Test wirklich abbrechen? Deine Antworten gehen verloren.',[['Ja, abbrechen',function(){st.test=null;render();},true],['Weiterarbeiten']]);};
+}
+function answered(t){var i;for(i=0;i<t.parts.length;i++){var v=t.vals[i];if(v!==undefined&&v!==null&&String(v).trim()!=='')return true;}return false;}
+function noteFor(pct){var r=Math.round(pct*100)/100,i;for(i=0;i<KEY.length;i++){if(r>=KEY[i][0])return KEY[i][1];}return 0;}
+function finishTest(){
+  var T=st.test,i,j,pts=0,perfect=true;
+  T.tasks.forEach(function(t){t.got=0;t.res=[];for(j=0;j<t.parts.length;j++){var ok=evalPart(t.parts[j],t.vals[j]);t.res.push(ok);if(ok)t.got+=t.parts[j].pts;else perfect=false;}pts+=t.got;});
+  T.pts=Math.round(pts*100)/100;T.np=noteFor(T.pts/30*100);T.done=true;T.secs=Math.round((Date.now()-T.startAt)/1000);
+  var d=new Date(),ds=('0'+d.getDate()).slice(-2)+'.'+('0'+(d.getMonth()+1)).slice(-2)+'.'+d.getFullYear();T.date=ds;
+  data.tests.push({pts:T.pts,np:T.np,date:ds});if(data.tests.length>20)data.tests.shift();
+  save();
+  checkBadges({perfect:perfect,np:T.np});
+  render();
+}
+function vResult(){
+  var T=st.test,h='<div class="page"><div class="card"><h2>Auswertung Selbsttest</h2><div class="row noprint"><label for="nm">Name (optional):</label><input type="text" id="nm" value="'+esc(T.name)+'" autocomplete="off"></div><p id="nmp"></p><p><b>Datum:</b> '+T.date+' &middot; <b>Dauer:</b> '+Math.floor(T.secs/60)+' min '+(T.secs%60)+' s</p><p class="big"><b>Punkte: '+fmt(T.pts,0)+' von 30 ('+fmt(T.pts/30*100,1)+'\u00a0%)</b> &middot; <b>Notenpunkte: '+T.np+'</b> &middot; <b>Note: '+NOTE[T.np]+'</b></p>';
+  h+='<table class="t"><tr><th>Aufgabe</th><th>Typ</th><th>Kompetenz</th><th>Punkte</th></tr>';
+  T.tasks.forEach(function(t,i){h+='<tr><td>'+(i+1)+'</td><td style="text-align:left">'+t.type+': '+TYPES.filter(function(x){return x.id===t.type;})[0].name+'</td><td>'+t.comp+'</td><td>'+fmt(t.got,0)+' von '+t.total+'</td></tr>';});
+  h+='<tr><th colspan="3">Summe</th><th>'+fmt(T.pts,0)+' von 30</th></tr></table>';
+  h+='<p class="cap">Notenschl\u00fcssel (Prozent \u2192 Notenpunkte): '+KEY.map(function(k){return 'ab '+k[0]+'\u00a0% '+k[1]+' NP';}).join(', ')+'.</p>';
+  h+='<div class="row noprint"><button type="button" class="pri" id="pr">Drucken</button><button type="button" id="nw">Neuer Test</button><button type="button" id="hm">Zur Startseite</button></div></div>';
+  T.tasks.forEach(function(t,i){
+    h+='<div class="card"><h3>Aufgabe '+(i+1)+' ('+fmt(t.got,0)+' von '+t.total+' Punkten)</h3><p>'+chips(t)+'</p><p>'+t.text+'</p><div class="fig">'+''+'</div>';
+    t.parts.forEach(function(p,j){
+      var given=t.vals[j];var gv=p.kind==='mc'?(given!==undefined&&given!==null&&p.options[given]?p.options[given].t:'keine Antwort'):(given!==undefined&&String(given).trim()!==''?esc(given):'keine Antwort');
+      h+='<div class="part '+(t.res[j]?'ok':'bad')+'"><div><b>'+LET.charAt(j)+')</b> '+p.label+'</div><div>Deine Antwort: '+gv+'</div>'+(t.res[j]?'<div><span class="lab ok">Richtig.</span></div>':'<div><span class="lab bad">Nicht richtig.</span> <span class="corr">Richtige L\u00f6sung: '+ansText(p)+'</span></div>')+'</div>';
+    });
+    h+=solHTML(t,false)+'</div>';
+  });
+  h+='</div>';
+  app.innerHTML=h;
+  var nm=document.getElementById('nm'),nmp=document.getElementById('nmp');
+  function showName(){nmp.innerHTML=T.name?'<b>Name:</b> '+esc(T.name):'';}
+  nm.oninput=function(){T.name=nm.value;showName();};showName();
+  document.getElementById('pr').onclick=function(){try{window.print();}catch(e){}};
+  document.getElementById('nw').onclick=function(){st.test=null;render();};
+  document.getElementById('hm').onclick=function(){st.test=null;go('start');};
+}
+window.addEventListener('beforeprint',function(){var d=document.querySelectorAll('details'),i;for(i=0;i<d.length;i++)d[i].open=true;});
+
+window.__stoch={st:st,data:function(){return data;},makeTask:makeTask,TYPES:TYPES,evalPart:evalPart,noteFor:noteFor,KEY:KEY,fmt:fmt};
+render();
+})();
+
+</script>
+</body>
+</html>
